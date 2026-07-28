@@ -47,6 +47,7 @@ export function DataExplorer() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [loading, setLoading] = useState(true);
+  const [expandCells, setExpandCells] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -175,6 +176,9 @@ export function DataExplorer() {
                 <option value={200}>200</option>
               </select>
             </label>
+            <button className={`cell-view-toggle ${expandCells ? "active" : ""}`} onClick={() => setExpandCells((value) => !value)}>
+              {expandCells ? "紧凑显示" : "展开全文"}
+            </button>
             <button className="download" onClick={downloadCsv} disabled={!payload}>下载当前数据</button>
           </div>
 
@@ -185,7 +189,7 @@ export function DataExplorer() {
             {deferredQuery && <b>筛选：{query}</b>}
           </div>
 
-          <div className={`raw-grid-wrap ${loading ? "loading" : ""}`}>
+          <div className={`raw-grid-wrap ${loading ? "loading" : ""} ${expandCells ? "expanded" : ""}`}>
             {loading ? (
               <div className="data-loading">正在读取完整工作表…</div>
             ) : (
