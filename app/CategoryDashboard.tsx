@@ -26,8 +26,10 @@ function trendValues(trend: string) {
 
 export function CategoryDashboard({ category }: { category: string }) {
   const [rows, setRows] = useState<Cell[][]>([]);
+  const [panel, setPanel] = useState<"brand" | "product" | "segment" | "action">("brand");
   useEffect(() => {
     setRows([]);
+    setPanel("brand");
     fetch(`/data/${FILE_MAP[category]}.json`).then((response) => response.json()).then((data) => setRows(data.values));
   }, [category]);
 
@@ -72,8 +74,15 @@ export function CategoryDashboard({ category }: { category: string }) {
         <article className="purple"><span>最强品牌矩阵</span><strong>{strongest?.name ?? "—"}</strong><small>Top100：{strongest ? trendLast(strongest.top100) : 0} 个</small></article>
       </div>
 
-      <div className="category-grid">
-        <article className="light-card brand-rank-chart">
+      <nav className="analysis-tabs" aria-label={`${category}分析主题`}>
+        <button className={panel === "brand" ? "active" : ""} onClick={() => setPanel("brand")}><b>01</b><span>品牌强度</span><small>矩阵扩张与收缩</small></button>
+        <button className={panel === "product" ? "active" : ""} onClick={() => setPanel("product")}><b>02</b><span>Top10单品</span><small>头部排名轨迹</small></button>
+        <button className={panel === "segment" ? "active" : ""} onClick={() => setPanel("segment")}><b>03</b><span>细分赛道</span><small>规模与头部性</small></button>
+        <button className={panel === "action" ? "active" : ""} onClick={() => setPanel("action")}><b>04</b><span>行动雷达</span><small>本周优先事项</small></button>
+      </nav>
+
+      <div className="category-focus">
+        {panel === "brand" && <article className="light-card brand-rank-chart">
           <div className="light-title"><div><span>品牌矩阵</span><h3>三周入榜强度与变化</h3></div><small>Top10 / Top100</small></div>
           <div className="light-bars">
             {brands.slice(0, 15).map((brand, index) => {
@@ -89,9 +98,9 @@ export function CategoryDashboard({ category }: { category: string }) {
               </div>;
             })}
           </div>
-        </article>
+        </article>}
 
-        <article className="light-card top-product-chart">
+        {panel === "product" && <article className="light-card top-product-chart">
           <div className="light-title"><div><span>头部商品</span><h3>Top10三周轨迹</h3></div><small>排名越小越强</small></div>
           <div className="product-tracks-light">
             {products.map((product) => {
@@ -103,9 +112,9 @@ export function CategoryDashboard({ category }: { category: string }) {
               </div>;
             })}
           </div>
-        </article>
+        </article>}
 
-        <article className="light-card segment-chart">
+        {panel === "segment" && <article className="light-card segment-chart">
           <div className="light-title"><div><span>细分机会</span><h3>产品方向规模与头部性</h3></div><small>Top10 / Top30 / Top100</small></div>
           <div className="segment-bubbles">
             {segments.map((segment, index) => {
@@ -116,9 +125,9 @@ export function CategoryDashboard({ category }: { category: string }) {
               </div>;
             })}
           </div>
-        </article>
+        </article>}
 
-        <article className="light-card conclusion-card">
+        {panel === "action" && <article className="light-card conclusion-card">
           <div className="light-title"><div><span>行动建议</span><h3>本周关注重点</h3></div></div>
           <div className="action-cards">
             <div><span>品牌</span><strong>{expanding[0]?.name ?? strongest?.name ?? "观察头部品牌"}</strong><small>优先跟进矩阵扩张</small></div>
@@ -131,7 +140,7 @@ export function CategoryDashboard({ category }: { category: string }) {
           <div className="decision-scale">
             <span>上升商品</span><i><b style={{ width: `${Math.min(100, products.filter((item) => item.status.includes("上升") || item.status.includes("冲入")).length * 25)}%` }} /></i><strong>{products.filter((item) => item.status.includes("上升") || item.status.includes("冲入")).length}个</strong>
           </div>
-        </article>
+        </article>}
       </div>
     </div>
   );
