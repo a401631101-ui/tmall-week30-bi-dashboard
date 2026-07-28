@@ -141,7 +141,7 @@ export function CategoryDashboard({ category }: { category: string }) {
             {segments.map((segment, index) => {
               const top100 = trendLast(segment.top100);
               const top10 = trendLast(segment.top10);
-              return <div className={segment.name.includes("彩砂") ? "keyword-focus" : ""} key={`${segment.name}-${index}`} style={{ "--fill": `${Math.max(12, Math.min(100, top100 * 4))}%` } as React.CSSProperties}>
+              return <div title={segment.judgment} className={segment.name.includes("彩砂") ? "keyword-focus" : ""} key={`${segment.name}-${index}`} style={{ "--fill": `${Math.max(12, Math.min(100, top100 * 4))}%` } as React.CSSProperties}>
                 <strong>{segment.name}</strong>
                 <div className="keyword-metrics"><span><small>TOP10</small><b>{top10}</b></span><span><small>TOP30</small><b>{trendLast(segment.top30)}</b></span><span><small>TOP100</small><b>{top100}</b></span></div>
                 <em>{segment.judgment}</em>
