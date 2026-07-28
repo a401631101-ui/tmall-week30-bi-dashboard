@@ -31,14 +31,6 @@ export function CategoryDashboard({ category }: { category: string }) {
     fetch(`/data/${FILE_MAP[category]}.json`).then((response) => response.json()).then((data) => setRows(data.values));
   }, [category]);
 
-  const summary = useMemo(() => ({
-    pattern: value(rows[5], 1),
-    matrix: value(rows[6], 1),
-    product: value(rows[7], 1),
-    risk: value(rows[8], 1),
-    next: value(rows[9], 1),
-  }), [rows]);
-
   const brands = useMemo<Brand[]>(() => rows.slice(13, 44).filter((row) => value(row, 1)).map((row) => ({
     name: value(row, 1), top10: value(row, 2), top30: value(row, 3), top100: value(row, 4), tag: value(row, 5), judgment: value(row, 6),
   })), [rows]);
@@ -52,7 +44,16 @@ export function CategoryDashboard({ category }: { category: string }) {
     name: value(row, 0), top10: value(row, 1), top30: value(row, 2), top100: value(row, 3), judgment: value(row, 4),
   })), [rows]);
 
-  const brandMax = Math.max(...brands.map((brand) => trendLast(brand.top100)), 1);
+  const expanding = brands.filter((brand) => {
+    const values = trendValues(brand.top100);
+    return (values.at(-1) ?? 0) > (values[0] ?? 0);
+  });
+  const shrinking = brands.filter((brand) => {
+    const values = trendValues(brand.top100);
+    return (values.at(-1) ?? 0) < (values[0] ?? 0);
+  });
+  const top10Total = brands.reduce((sum, brand) => sum + trendLast(brand.top10), 0);
+  const strongest = [...brands].sort((a, b) => trendLast(b.top100) - trendLast(a.top100))[0];
   if (!rows.length) return <div className="category-loading">正在加载 {category} 完整分析…</div>;
 
   return (
@@ -64,20 +65,28 @@ export function CategoryDashboard({ category }: { category: string }) {
         <div className="category-score"><strong>{segments.length}</strong><span>细分方向</span></div>
       </div>
 
-      <div className="summary-ribbon">
-        <article><span>类目格局</span><p>{summary.pattern}</p></article>
-        <article><span>品牌矩阵</span><p>{summary.matrix}</p></article>
-        <article><span>风险提示</span><p>{summary.risk}</p></article>
-        <article><span>下周观察</span><p>{summary.next}</p></article>
+      <div className="category-signal-kpis">
+        <article className="blue"><span>矩阵扩张品牌</span><strong>{expanding.length}</strong><small>{expanding.slice(0, 3).map((item) => item.name).join(" · ") || "暂无"}</small></article>
+        <article className="orange"><span>矩阵收缩品牌</span><strong>{shrinking.length}</strong><small>{shrinking.slice(0, 3).map((item) => item.name).join(" · ") || "暂无"}</small></article>
+        <article className="green"><span>本周Top10占位</span><strong>{top10Total}</strong><small>头部商品合计</small></article>
+        <article className="purple"><span>最强品牌矩阵</span><strong>{strongest?.name ?? "—"}</strong><small>Top100：{strongest ? trendLast(strongest.top100) : 0} 个</small></article>
       </div>
 
       <div className="category-grid">
         <article className="light-card brand-rank-chart">
-          <div className="light-title"><div><span>品牌占位</span><h3>Top100矩阵强度</h3></div><small>最新周入榜商品数</small></div>
+          <div className="light-title"><div><span>品牌矩阵</span><h3>三周入榜强度与变化</h3></div><small>Top10 / Top100</small></div>
           <div className="light-bars">
-            {brands.slice(0, 12).map((brand, index) => {
+            {brands.slice(0, 15).map((brand, index) => {
               const latest = trendLast(brand.top100);
-              return <div key={`${brand.name}-${index}`}><b>{index + 1}</b><strong>{brand.name}</strong><i><em style={{ width: `${(latest / brandMax) * 100}%` }} /></i><span>{latest}</span><small>{brand.tag}</small></div>;
+              const values = trendValues(brand.top100);
+              const max = Math.max(...values, 1);
+              return <div key={`${brand.name}-${index}`}>
+                <b>{index + 1}</b>
+                <strong title={brand.name}>{brand.name}</strong>
+                <div className="matrix-mini-bars">{values.map((number, valueIndex) => <i key={valueIndex} style={{ height: `${Math.max(16, number / max * 100)}%` }} />)}</div>
+                <span>{brand.top100}</span>
+                <em className={values[2] > values[0] ? "grow" : values[2] < values[0] ? "shrink" : "flat"}>{brand.tag}</em>
+              </div>;
             })}
           </div>
         </article>
@@ -110,8 +119,12 @@ export function CategoryDashboard({ category }: { category: string }) {
         </article>
 
         <article className="light-card conclusion-card">
-          <div className="light-title"><div><span>经营结论</span><h3>单品绝对实力</h3></div></div>
-          <p>{summary.product}</p>
+          <div className="light-title"><div><span>行动建议</span><h3>本周关注重点</h3></div></div>
+          <div className="action-cards">
+            <div><span>品牌</span><strong>{expanding[0]?.name ?? strongest?.name ?? "观察头部品牌"}</strong><small>优先跟进矩阵扩张</small></div>
+            <div><span>单品</span><strong>{products.find((item) => item.status.includes("上升") || item.status.includes("冲入"))?.brand ?? products[0]?.brand ?? "—"}</strong><small>复盘排名改善原因</small></div>
+            <div><span>细分</span><strong>{segments.sort((a, b) => trendLast(b.top100) - trendLast(a.top100))[0]?.name ?? "—"}</strong><small>关注Top100规模</small></div>
+          </div>
           <div className="decision-scale">
             <span>头部集中</span><i><b style={{ width: `${Math.min(100, products.filter((item) => item.rank <= 3).length * 25)}%` }} /></i><strong>{products.filter((item) => item.rank <= 3).length}个Top3</strong>
           </div>
