@@ -19,14 +19,7 @@ const categoryGroups = [
 function text(row: Cell[] | undefined, index: number) { return String(row?.[index] ?? ""); }
 function last(trend: string) { return Number(trend.split("→").at(-1)) || 0; }
 function values(trend: string) { return trend.split("→").map((item) => Number(item) || 0); }
-function categoryIcon(category: string) {
-  if (/漆|涂料/.test(category)) return "🎨";
-  if (/美缝|胶/.test(category)) return "🧱";
-  if (/龙头|花洒/.test(category)) return "🚿";
-  if (/地漏|角阀/.test(category)) return "🔩";
-  if (/水槽/.test(category)) return "🫧";
-  return "🏠";
-}
+function productUrl(id: string) { return `https://detail.tmall.com/item.htm?id=${encodeURIComponent(id)}`; }
 
 export function VisualDashboard() {
   const [yuhong, setYuhong] = useState<YuhongCategory[]>([]);
@@ -129,18 +122,18 @@ export function VisualDashboard() {
         <article className="viz-card top10-products">
           <div className="viz-title"><div><span>单品赛道</span><h2>本周Top10产品</h2></div><em>跨品类头部商品</em></div>
           <div className="product-card-grid">
-            {products.map((item) => <div className={item.brand === "东方雨虹" ? "yuhong" : ""} key={`${item.category}-${item.id}`}>
-              <div className="product-thumb"><span>{categoryIcon(item.category)}</span><small>{item.id.slice(-6)}</small></div>
+            {products.map((item) => <a href={productUrl(item.id)} target="_blank" rel="noreferrer" className={item.brand === "东方雨虹" ? "yuhong" : ""} key={`${item.category}-${item.id}`}>
+              <div className="product-thumb"><span>官方主图</span><small>打开天猫 · {item.id.slice(-6)}</small></div>
               <p><b>#{item.rank}</b><strong>{item.brand}</strong><span>{item.category} · {item.direction}</span></p>
               <h3 title={item.name}>{item.name}</h3><footer><em>{item.track}</em><small>{item.status}</small></footer>
-            </div>)}
+            </a>)}
           </div>
         </article>
 
         <article className="viz-card rising-products">
           <div className="viz-title"><div><span>增长雷达</span><h2>本周上升明显的Top10产品</h2></div><em>排名改善幅度</em></div>
           <div className="rising-list">
-            {rising.map((item, index) => <div key={item.id}><b>{index + 1}</b><span className="rise-icon">🚀</span><p><strong>{item.brand} · {item.direction}</strong><small>{item.category}｜{item.name}</small></p><em>{item.track}</em><i>+{item.change}</i></div>)}
+            {rising.map((item, index) => <a href={productUrl(item.id)} target="_blank" rel="noreferrer" key={item.id}><b>{index + 1}</b><span className="rise-icon">🚀</span><p><strong>{item.brand} · {item.direction}</strong><small>{item.category}｜{item.name}</small></p><em>{item.track}</em><i>+{item.change}</i></a>)}
           </div>
         </article>
       </div>

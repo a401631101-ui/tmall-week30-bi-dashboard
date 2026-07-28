@@ -24,6 +24,9 @@ function trendLast(trend: string) {
 function trendValues(trend: string) {
   return trend.split("→").map((item) => Number(item) || 0);
 }
+function productUrl(id: string) {
+  return `https://detail.tmall.com/item.htm?id=${encodeURIComponent(id)}`;
+}
 
 export function CategoryDashboard({ category }: { category: string }) {
   const [rows, setRows] = useState<Cell[][]>([]);
@@ -118,28 +121,30 @@ export function CategoryDashboard({ category }: { category: string }) {
           <div className="category-product-cards">
             {products.map((product) => {
               const values = trendValues(product.track);
-              return <div key={product.id}>
-                <div className="category-product-thumb"><span>{product.direction.includes("彩砂") ? "🧱" : /漆|涂/.test(category) ? "🎨" : /龙头|花洒/.test(category) ? "🚿" : "📦"}</span><small>{product.id.slice(-6)}</small></div>
+              return <a href={productUrl(product.id)} target="_blank" rel="noreferrer" key={product.id}>
+                <div className="category-product-thumb"><span>天猫主图</span><small>登录后查看 · {product.id.slice(-6)}</small></div>
                 <p><b>#{product.rank}</b><strong>{product.brand}</strong><small>{product.direction} · {product.status}</small></p>
                 <h4 title={product.name}>{product.name}</h4>
                 <div className="product-rank-mini">{values.map((number, index) => <i key={index} style={{ height: `${Math.max(12, 92 - number * 5)}%` }}><b>{number}</b></i>)}</div>
-              </div>;
+              </a>;
             })}
           </div>
           <div className="category-anomalies">
             <div className="light-title"><div><span>异动产品</span><h3>本周机会与预警</h3></div><small>来自全品类异动明细</small></div>
-            {anomalies.map((item) => <div key={`${item.type}-${item.id}`}><span className={item.type.includes("上升") || Number(item.change) > 0 ? "up" : "down"}>{item.type.includes("上升") || Number(item.change) > 0 ? "↗" : "↘"}</span><p><strong>{item.brand} · {item.direction}</strong><small>{item.name}</small></p><em>{item.track}</em><b>{item.change ? `${Number(item.change) > 0 ? "+" : ""}${item.change}` : item.rank}</b></div>)}
+            {anomalies.map((item) => <a href={productUrl(item.id)} target="_blank" rel="noreferrer" key={`${item.type}-${item.id}`}><span className={item.type.includes("上升") || Number(item.change) > 0 ? "up" : "down"}>{item.type.includes("上升") || Number(item.change) > 0 ? "↗" : "↘"}</span><p><strong>{item.brand} · {item.direction}</strong><small>{item.name}</small></p><em>{item.track}</em><b>{item.change ? `${Number(item.change) > 0 ? "+" : ""}${item.change}` : item.rank}</b></a>)}
           </div>
         </article>}
 
         {panel === "segment" && <article className="light-card segment-chart">
           <div className="light-title"><div><span>细分机会</span><h3>产品方向规模与头部性</h3></div><small>Top10 / Top30 / Top100</small></div>
-          <div className="segment-bubbles">
+          <div className="segment-keyword-map">
             {segments.map((segment, index) => {
               const top100 = trendLast(segment.top100);
               const top10 = trendLast(segment.top10);
               return <div className={segment.name.includes("彩砂") ? "keyword-focus" : ""} key={`${segment.name}-${index}`} style={{ "--fill": `${Math.max(12, Math.min(100, top100 * 4))}%` } as React.CSSProperties}>
-                <strong>{segment.name}</strong><b>{top100}</b><small>Top10：{top10}</small><span>{segment.judgment}</span>
+                <strong>{segment.name}</strong>
+                <div className="keyword-metrics"><span><small>TOP10</small><b>{top10}</b></span><span><small>TOP30</small><b>{trendLast(segment.top30)}</b></span><span><small>TOP100</small><b>{top100}</b></span></div>
+                <em>{segment.judgment}</em>
               </div>;
             })}
           </div>
