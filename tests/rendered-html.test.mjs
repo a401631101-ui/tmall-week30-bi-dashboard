@@ -56,7 +56,7 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.doesNotMatch(html, /cdn\.jsdelivr\.net/);
 
   const images = JSON.parse(imageManifest);
-  assert.equal(Object.keys(images).length, 28);
+  assert.ok(Object.keys(images).length >= 885);
   assert.ok(Object.values(images).every((value) => value.startsWith("./product-images/")));
   assert.ok(imageFiles.length >= 150);
   assert.ok(echarts.length > 1_000_000);
