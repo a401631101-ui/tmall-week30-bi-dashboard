@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { productImage } from "./productImages";
 
 type Cell = string | number | boolean | null;
 type Brand = { name: string; top10: string; top30: string; top100: string; tag: string; judgment: string };
@@ -122,7 +123,7 @@ export function CategoryDashboard({ category }: { category: string }) {
             {products.map((product) => {
               const values = trendValues(product.track);
               return <a href={productUrl(product.id)} target="_blank" rel="noreferrer" key={product.id}>
-                <div className="category-product-thumb"><span>天猫主图</span><small>登录后查看 · {product.id.slice(-6)}</small></div>
+                <div className="category-product-thumb">{productImage(product.id) ? <img src={productImage(product.id)!} alt={`${product.brand} ${product.name}`} /> : <><span>天猫主图</span><small>登录后查看 · {product.id.slice(-6)}</small></>}</div>
                 <p><b>#{product.rank}</b><strong>{product.brand}</strong><small>{product.direction} · {product.status}</small></p>
                 <h4 title={product.name}>{product.name}</h4>
                 <div className="product-rank-mini">{values.map((number, index) => <i key={index} style={{ height: `${Math.max(12, 92 - number * 5)}%` }}><b>{number}</b></i>)}</div>

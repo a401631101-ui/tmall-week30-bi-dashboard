@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { productImage } from "./productImages";
 
 type Cell = string | number | boolean | null;
 type Brand = { name: string; top10: number; top30: number; top100: number; categories: number };
@@ -123,7 +124,7 @@ export function VisualDashboard() {
           <div className="viz-title"><div><span>单品赛道</span><h2>本周Top10产品</h2></div><em>跨品类头部商品</em></div>
           <div className="product-card-grid">
             {products.map((item) => <a href={productUrl(item.id)} target="_blank" rel="noreferrer" className={item.brand === "东方雨虹" ? "yuhong" : ""} key={`${item.category}-${item.id}`}>
-              <div className="product-thumb"><span>官方主图</span><small>打开天猫 · {item.id.slice(-6)}</small></div>
+              <div className="product-thumb">{productImage(item.id) ? <img src={productImage(item.id)!} alt={`${item.brand} ${item.name}`} /> : <><span>官方主图</span><small>打开天猫 · {item.id.slice(-6)}</small></>}</div>
               <p><b>#{item.rank}</b><strong>{item.brand}</strong><span>{item.category} · {item.direction}</span></p>
               <h3 title={item.name}>{item.name}</h3><footer><em>{item.track}</em><small>{item.status}</small></footer>
             </a>)}
