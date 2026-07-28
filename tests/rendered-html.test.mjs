@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
 async function render(pathname = "/") {
@@ -38,20 +38,26 @@ test("server-renders the finished Tmall dashboard", async () => {
 });
 
 test("standalone dashboard ships its required local resources", async () => {
-  const [html, imageManifest, echarts] = await Promise.all([
+  const [html, imageManifest, echarts, imageFiles] = await Promise.all([
     readFile(new URL("../public/bi-dashboard.html", import.meta.url), "utf8"),
     readFile(new URL("../public/product-images.json", import.meta.url), "utf8"),
     readFile(new URL("../public/vendor/echarts.min.js", import.meta.url), "utf8"),
+    readdir(new URL("../public/product-images/", import.meta.url)),
   ]);
 
   assert.match(html, /src="\.\/vendor\/echarts\.min\.js"/);
   assert.match(html, /LJ\('\.\/data\/01\.json'\)/);
   assert.match(html, /LJ\('\.\/product-images\.json'\)/);
   assert.match(html, /function showLoadError/);
+  assert.match(html, /品牌周对比/);
+  assert.match(html, /id="nav-products"/);
+  assert.match(html, /id="headerCatFilter"/);
+  assert.doesNotMatch(html, /id="nav-gallery"/);
   assert.doesNotMatch(html, /cdn\.jsdelivr\.net/);
 
   const images = JSON.parse(imageManifest);
   assert.equal(Object.keys(images).length, 28);
   assert.ok(Object.values(images).every((value) => value.startsWith("./product-images/")));
+  assert.ok(imageFiles.length >= 150);
   assert.ok(echarts.length > 1_000_000);
 });
