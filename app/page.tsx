@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DataExplorer } from "./DataExplorer";
 
 const categories = [
   "全品类",
@@ -216,6 +217,8 @@ export default function Home() {
           </table>
         </div>
       </section>
+
+      <DataExplorer />
 
       <footer>
         <span>数据源：第30周天猫重点品类市场竞品周报 · 含天猫与淘宝</span>
