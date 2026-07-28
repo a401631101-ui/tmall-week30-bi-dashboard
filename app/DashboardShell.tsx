@@ -27,8 +27,8 @@ export function DashboardShell() {
       </aside>
       <section className="right-stage">
         <header className="stage-head">
-          <div><span>MARKET INTELLIGENCE</span><h1>{view === "经营总览" ? "重点品类市场竞品驾驶舱" : view === "完整数据" ? "完整数据查询中心" : `${view} · 市场分析`}</h1></div>
-          <div className="head-kpis"><span><b>15</b> 品类</span><span><b>1,500</b> 本周商品</span><span><b>38,700</b> 源数据</span></div>
+          <div><span>TMALL CATEGORY INTELLIGENCE</span><h1>{view === "经营总览" ? "东方雨虹天猫重点品类驾驶舱" : view === "完整数据" ? "完整数据查询中心" : `${view} · 市场分析`}</h1></div>
+          <div className="head-kpis">{view === "经营总览" ? <><span><b>7</b> 雨虹覆盖品类</span><span><b>6</b> Top10席位</span><span><b>48</b> Top100席位</span></> : <><span><b>东方雨虹</b> 我方品牌</span><span><b>W30</b> 本周表现</span></>}</div>
         </header>
         <main className="stage-content">
           {view === "经营总览" && <VisualDashboard />}

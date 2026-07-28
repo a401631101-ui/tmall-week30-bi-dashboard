@@ -1,244 +1,146 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type Analytics = {
-  totalSourceRows: number;
-  shopTypesAll: { name: string; value: number }[];
-  shopTypesLatest: { name: string; value: number }[];
-  periods: { name: string; value: number }[];
-};
+type Cell = string | number | boolean | null;
+type Brand = { name: string; top10: number; top30: number; top100: number; categories: number };
+type Product = { rank: number; category: string; brand: string; id: string; name: string; track: string; status: string; direction: string };
+type Rising = Product & { change: number; judgment: string };
+type YuhongCategory = { category: string; top10: string; top30: string; top100: string; tag: string };
 
-const categoryMap = [
-  ["美缝/勾缝剂", 94, "头部换位", "hot"],
-  ["防水涂料", 90, "爆品稳定", "hot"],
-  ["乳胶漆", 86, "竞争加剧", "hot"],
-  ["玻璃胶", 78, "腰部收缩", "warn"],
-  ["角阀", 76, "品牌收缩", "warn"],
-  ["地漏", 73, "连续收缩", "warn"],
-  ["厨房龙头", 72, "单品冲榜", "good"],
-  ["水槽套餐", 70, "矩阵扩张", "good"],
-  ["恒温花洒", 68, "矩阵扩张", "good"],
-  ["毛巾架", 66, "头部增强", "good"],
-  ["面盆龙头", 62, "腰部收缩", "warn"],
-  ["瓷砖胶", 58, "稳定观察", "stable"],
-  ["地坪漆", 55, "单品波动", "stable"],
-  ["艺术漆", 51, "分散竞争", "stable"],
-  ["水性木器漆", 46, "长尾市场", "stable"],
-] as const;
-
-const brandMetrics = [
-  { name: "九牧", top10: 20, top30: 38, top100: 105, delta: -9, state: "预警" },
-  { name: "潜水艇", top10: 16, top30: 47, top100: 112, delta: -8, state: "预警" },
-  { name: "立邦", top10: 6, top30: 29, top100: 64, delta: 4, state: "扩张" },
-  { name: "东方雨虹", top10: 6, top30: 17, top100: 48, delta: 2, state: "扩张" },
-  { name: "三棵树", top10: 13, top30: 22, top100: 47, delta: 0, state: "稳健" },
-  { name: "瓦克", top10: 5, top30: 11, top100: 18, delta: -1, state: "收缩" },
+const CATEGORY_FILES = ["05","06","07","08","09","10","11","12","13","14","15","16","17","18","19"];
+const categoryGroups = [
+  { name: "涂料与防水", icon: "💧", categories: ["防水涂料","地坪漆","水性木器漆","艺术漆","乳胶漆"], tone: "blue" },
+  { name: "胶粘与辅材", icon: "🧱", categories: ["美缝/勾缝剂","玻璃胶","瓷砖胶"], tone: "orange" },
+  { name: "卫浴五金", icon: "🔩", categories: ["地漏","毛巾架","角阀"], tone: "green" },
+  { name: "厨卫水件", icon: "🚿", categories: ["面盆龙头","恒温花洒套装","厨房龙头","水槽套餐"], tone: "purple" },
 ];
 
-const productTracks = [
-  { rank: 1, name: "东方雨虹美缝剂", category: "美缝", values: [2, 3, 1], state: "绝对爆品" },
-  { rank: 1, name: "沃特浦防水涂料", category: "防水", values: [1, 1, 1], state: "绝对爆品" },
-  { rank: 3, name: "房屋医生美缝剂", category: "美缝", values: [6, 4, 3], state: "连续上升" },
-  { rank: 1, name: "九牧抽拉厨房龙头", category: "厨卫", values: [4, 3, 1], state: "连续上升" },
-  { rank: 8, name: "九牧304水槽", category: "水槽", values: [14, 11, 8], state: "冲入Top10" },
-];
-
-function PeriodChart({ analytics }: { analytics: Analytics | null }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !analytics) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    const width = parent.clientWidth;
-    const height = 210;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, width, height);
-    const values = analytics.periods.map((item) => item.value);
-    const max = Math.max(...values);
-    const left = 14;
-    const right = width - 14;
-    const top = 18;
-    const bottom = 175;
-    ctx.strokeStyle = "#243842";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 5]);
-    for (let i = 0; i < 4; i++) {
-      const y = top + ((bottom - top) / 3) * i;
-      ctx.beginPath();
-      ctx.moveTo(left, y);
-      ctx.lineTo(right, y);
-      ctx.stroke();
-    }
-    ctx.setLineDash([]);
-    const points = values.map((value, index) => ({
-      x: left + ((right - left) * index) / Math.max(1, values.length - 1),
-      y: bottom - (value / max) * (bottom - top),
-    }));
-    const gradient = ctx.createLinearGradient(0, top, 0, bottom);
-    gradient.addColorStop(0, "rgba(255,78,88,.34)");
-    gradient.addColorStop(1, "rgba(255,78,88,0)");
-    ctx.beginPath();
-    points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
-    ctx.lineTo(right, bottom);
-    ctx.lineTo(left, bottom);
-    ctx.closePath();
-    ctx.fillStyle = gradient;
-    ctx.fill();
-    ctx.beginPath();
-    points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
-    ctx.strokeStyle = "#ff4e58";
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-    points.slice(-3).forEach((point) => {
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#0d1a20";
-      ctx.fill();
-      ctx.strokeStyle = "#ff4e58";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    });
-    ctx.fillStyle = "#8fa0a8";
-    ctx.font = '11px "Microsoft YaHei"';
-    ctx.fillText("第1周", left, 201);
-    ctx.textAlign = "right";
-    ctx.fillText("第30周", right, 201);
-  }, [analytics]);
-  return <canvas ref={canvasRef} aria-label="各周数据覆盖趋势图" />;
+function text(row: Cell[] | undefined, index: number) { return String(row?.[index] ?? ""); }
+function last(trend: string) { return Number(trend.split("→").at(-1)) || 0; }
+function values(trend: string) { return trend.split("→").map((item) => Number(item) || 0); }
+function categoryIcon(category: string) {
+  if (/漆|涂料/.test(category)) return "🎨";
+  if (/美缝|胶/.test(category)) return "🧱";
+  if (/龙头|花洒/.test(category)) return "🚿";
+  if (/地漏|角阀/.test(category)) return "🔩";
+  if (/水槽/.test(category)) return "🫧";
+  return "🏠";
 }
 
 export function VisualDashboard() {
-  const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [brandMetric, setBrandMetric] = useState<"top10" | "top30" | "top100">("top100");
-  const [anomalyCounts, setAnomalyCounts] = useState<{ name: string; value: number }[]>([]);
+  const [yuhong, setYuhong] = useState<YuhongCategory[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [rising, setRising] = useState<Rising[]>([]);
 
   useEffect(() => {
-    fetch("/data/analytics.json").then((response) => response.json()).then(setAnalytics);
-    fetch("/data/03.json").then((response) => response.json()).then((data) => {
-      const counts = new Map<string, number>();
-      data.values.slice(2).forEach((row: unknown[]) => {
-        const type = String(row[0] ?? "");
-        if (type) counts.set(type, (counts.get(type) ?? 0) + 1);
+    Promise.all([
+      ...CATEGORY_FILES.map((file) => fetch(`/data/${file}.json`).then((response) => response.json())),
+      fetch("/data/03.json").then((response) => response.json()),
+    ]).then((payloads) => {
+      const categoryPayloads = payloads.slice(0, CATEGORY_FILES.length);
+      const brandMap = new Map<string, Brand>();
+      const yuhongRows: YuhongCategory[] = [];
+      const productRows: Product[] = [];
+      categoryPayloads.forEach((payload) => {
+        const rows: Cell[][] = payload.values;
+        rows.slice(13, 44).forEach((row) => {
+          if (!text(row, 1)) return;
+          const name = text(row, 1);
+          const current = brandMap.get(name) ?? { name, top10: 0, top30: 0, top100: 0, categories: 0 };
+          current.top10 += last(text(row, 2));
+          current.top30 += last(text(row, 3));
+          current.top100 += last(text(row, 4));
+          current.categories += 1;
+          brandMap.set(name, current);
+          if (name === "东方雨虹") yuhongRows.push({ category: text(row, 0), top10: text(row, 2), top30: text(row, 3), top100: text(row, 4), tag: text(row, 5) });
+        });
+        rows.slice(46, 57).forEach((row) => {
+          if (!Number(row?.[0])) return;
+          productRows.push({ rank: Number(row[0]), category: text(row, 1), brand: text(row, 2), id: text(row, 3), name: text(row, 4), track: text(row, 5), status: text(row, 6), direction: text(row, 8) });
+        });
       });
-      setAnomalyCounts([...counts.entries()].map(([name, value]) => ({ name, value })));
+      const anomalyRows: Cell[][] = payloads.at(-1).values;
+      const risingRows = anomalyRows.slice(2).filter((row) => text(row, 0).includes("上升") && Number(row[6]) <= 10).map((row) => ({
+        rank: Number(row[6]), category: text(row, 1), brand: text(row, 2), id: text(row, 3), name: text(row, 4), track: text(row, 5),
+        status: text(row, 0), direction: text(row, 11), change: Number(row[8]) || 0, judgment: text(row, 13),
+      })).sort((a, b) => b.change - a.change);
+      setYuhong(yuhongRows);
+      setBrands([...brandMap.values()].sort((a, b) => b.top100 - a.top100).slice(0, 10));
+      setProducts(productRows.sort((a, b) => a.rank - b.rank || a.category.localeCompare(b.category, "zh")).slice(0, 10));
+      setRising(risingRows.slice(0, 10));
     });
   }, []);
 
-  const platform = useMemo(() => {
-    if (!analytics) return { tmall: 0, taobao: 0, tmallRate: 0 };
-    const tmall = analytics.shopTypesAll.find((item) => item.name === "天猫")?.value ?? 0;
-    const taobao = analytics.shopTypesAll.find((item) => item.name === "淘宝")?.value ?? 0;
-    return { tmall, taobao, tmallRate: Math.round((tmall / (tmall + taobao)) * 100) };
-  }, [analytics]);
-
-  const brandMax = Math.max(...brandMetrics.map((item) => item[brandMetric]));
-  const anomalyMax = Math.max(...anomalyCounts.map((item) => item.value), 1);
+  const yuhongTotal = useMemo(() => yuhong.reduce((acc, item) => ({
+    top10: acc.top10 + last(item.top10), top30: acc.top30 + last(item.top30), top100: acc.top100 + last(item.top100),
+  }), { top10: 0, top30: 0, top100: 0 }), [yuhong]);
+  const strongest = [...yuhong].sort((a, b) => last(b.top100) - last(a.top100))[0];
+  const brandMax = Math.max(...brands.map((item) => item.top100), 1);
 
   return (
-    <section className="cockpit">
-      <div className="insight-banner">
-        <div><span>W30 核心结论</span><strong>头部稳定，品牌矩阵分化，厨卫单品换位加速</strong></div>
-        <p>本周15个品类Top100保持完整覆盖。汉斯格雅、卡贝、悍高出现矩阵扩张；潜水艇、九牧部分品类和瓦克腰部占位收缩。</p>
-        <a href="#data-center">查看全部明细 →</a>
+    <section className="yuhong-cockpit">
+      <div className="yuhong-hero">
+        <div className="yuhong-mark">YR</div>
+        <div><span>东方雨虹 · 天猫重点品类</span><h2>品牌发展驾驶舱</h2><p>聚焦品牌覆盖、头部占位、爆品表现与本周增长机会</p></div>
+        <div className="yuhong-rank"><small>跨品类Top100强度</small><strong>第 4</strong><span>48 个入榜商品</span></div>
       </div>
 
-      <div className="visual-kpis">
-        <article><i>01</i><span>市场覆盖</span><strong>15</strong><small>重点品类</small><b className="kpi-spark s1" /></article>
-        <article><i>02</i><span>本周商品池</span><strong>1,500</strong><small>每类目Top100</small><b className="kpi-spark s2" /></article>
-        <article><i>03</i><span>跨品类品牌</span><strong>567</strong><small>竞争品牌池</small><b className="kpi-spark s3" /></article>
-        <article><i>04</i><span>头部单品</span><strong>150</strong><small>全品类Top10</small><b className="kpi-spark s4" /></article>
-        <article className="risk-kpi"><i>05</i><span>异动记录</span><strong>1,249</strong><small>机会与风险</small><b className="kpi-spark s5" /></article>
+      <div className="yuhong-kpis">
+        <article className="blue"><i>🧭</i><span>覆盖品类</span><strong>{yuhong.length}</strong><small>15个重点品类中</small></article>
+        <article className="red"><i>🏆</i><span>Top10席位</span><strong>{yuhongTotal.top10}</strong><small>头部商品占位</small></article>
+        <article className="green"><i>📈</i><span>Top30席位</span><strong>{yuhongTotal.top30}</strong><small>核心商品矩阵</small></article>
+        <article className="purple"><i>🧩</i><span>Top100席位</span><strong>{yuhongTotal.top100}</strong><small>全域品牌矩阵</small></article>
+        <article className="orange"><i>⭐</i><span>最强品类</span><strong>{strongest?.category ?? "—"}</strong><small>Top100 {strongest ? last(strongest.top100) : 0} 席</small></article>
       </div>
 
-      <div className="visual-grid">
-        <article className="viz-card period-card">
-          <div className="viz-title"><div><span>市场数据脉搏</span><h2>周度覆盖趋势</h2></div><em>32个周期 · 全量历史</em></div>
-          <PeriodChart analytics={analytics} />
-          <div className="chart-foot"><span><i className="dot red" /> 每周样本量</span><strong>最新三周稳定在 1,500 条</strong></div>
-        </article>
-
-        <article className="viz-card platform-card">
-          <div className="viz-title"><div><span>平台构成</span><h2>样本来源占比</h2></div></div>
-          <div className="donut-wrap">
-            <div className="donut" style={{ "--rate": `${platform.tmallRate * 3.6}deg` } as React.CSSProperties}>
-              <div><strong>{platform.tmallRate}%</strong><span>天猫</span></div>
-            </div>
-            <div className="legend-block">
-              <div><i className="dot red" /><span>天猫</span><strong>{platform.tmall.toLocaleString()}</strong></div>
-              <div><i className="dot dark" /><span>淘宝</span><strong>{platform.taobao.toLocaleString()}</strong></div>
-            </div>
-          </div>
-          <p className="viz-note">平台数据合并分析，未过滤淘宝样本。</p>
-        </article>
-
-        <article className="viz-card category-card">
-          <div className="viz-title"><div><span>竞争热力</span><h2>15品类市场态势</h2></div><em>颜色代表经营判断</em></div>
-          <div className="heatmap">
-            {categoryMap.map(([name, score, label, tone]) => (
-              <div key={name} className={`heat-cell ${tone}`} style={{ "--heat": score / 100 } as React.CSSProperties}>
-                <strong>{name}</strong><span>{label}</span><b>{score}</b>
-              </div>
-            ))}
-          </div>
-          <div className="heat-legend"><span><i className="dot red" /> 高竞争</span><span><i className="dot green" /> 扩张机会</span><span><i className="dot amber" /> 收缩预警</span></div>
-        </article>
-
-        <article className="viz-card brand-chart-card">
-          <div className="viz-title">
-            <div><span>品牌矩阵</span><h2>核心品牌入榜强度</h2></div>
-            <div className="metric-tabs">
-              {(["top10", "top30", "top100"] as const).map((metric) => <button key={metric} className={brandMetric === metric ? "active" : ""} onClick={() => setBrandMetric(metric)}>{metric.toUpperCase()}</button>)}
-            </div>
-          </div>
-          <div className="brand-bars">
-            {brandMetrics.map((brand, index) => (
-              <div className="brand-bar-row" key={brand.name}>
-                <span className="brand-index">{String(index + 1).padStart(2, "0")}</span>
-                <strong>{brand.name}</strong>
-                <i><b className={brand.delta < 0 ? "bar-risk" : ""} style={{ width: `${(brand[brandMetric] / brandMax) * 100}%` }} /></i>
-                <em>{brand[brandMetric]}</em>
-                <small className={brand.delta < 0 ? "negative" : "positive-text"}>{brand.delta > 0 ? `+${brand.delta}` : brand.delta}</small>
-              </div>
-            ))}
-          </div>
-          <p className="viz-note">趋势为品牌入榜商品数量，不是品牌排名。负值代表Top100较前期收缩。</p>
-        </article>
-
-        <article className="viz-card anomaly-card">
-          <div className="viz-title"><div><span>变化雷达</span><h2>异动类型分布</h2></div><em>共1,249条</em></div>
-          <div className="anomaly-bars">
-            {anomalyCounts.map((item) => (
-              <div key={item.name}>
-                <span>{item.name}</span>
-                <i><b style={{ width: `${(item.value / anomalyMax) * 100}%` }} /></i>
-                <strong>{item.value}</strong>
+      <div className="yuhong-grid">
+        <article className="viz-card yuhong-category-chart">
+          <div className="viz-title"><div><span>雨虹品类版图</span><h2>7个品类入榜趋势</h2></div><em>第28周 → 第29周 → 第30周</em></div>
+          <div className="yuhong-category-rows">
+            {yuhong.map((item) => (
+              <div key={item.category}>
+                <strong>{item.category}</strong>
+                {(["top10","top30","top100"] as const).map((metric) => {
+                  const trend = item[metric]; const points = values(trend); const max = Math.max(...points, 1);
+                  return <div className={`trend-metric ${metric}`} key={metric}><span>{metric.toUpperCase()}</span><i>{points.map((point, index) => <b key={index} style={{ height: `${Math.max(18, point / max * 100)}%` }} />)}</i><em>{trend}</em></div>;
+                })}
+                <small>{item.tag}</small>
               </div>
             ))}
           </div>
         </article>
 
-        <article className="viz-card product-card">
-          <div className="viz-title"><div><span>单品赛道</span><h2>强势商品三周轨迹</h2></div><em>排名越低越强</em></div>
-          <div className="product-visual-list">
-            {productTracks.map((item) => (
-              <div key={item.name}>
-                <span className="track-rank">{item.rank}</span>
-                <div className="track-name"><strong>{item.name}</strong><small>{item.category} · {item.state}</small></div>
-                <div className="rank-track">
-                  {item.values.map((value, index) => <i key={index} style={{ height: `${Math.max(14, 100 - value * 5)}%` }}><b>{value}</b></i>)}
-                </div>
-                <strong className="track-arrow">{item.values[2] <= item.values[0] ? "↗" : "↘"}</strong>
-              </div>
-            ))}
+        <article className="viz-card market-group-chart">
+          <div className="viz-title"><div><span>市场结构</span><h2>15品类同类型分布</h2></div><em>按消费场景归组</em></div>
+          <div className="market-groups">
+            {categoryGroups.map((group) => <div className={group.tone} key={group.name}><i>{group.icon}</i><strong>{group.name}</strong><b>{group.categories.length}</b><span>{group.categories.join(" · ")}</span></div>)}
+          </div>
+        </article>
+
+        <article className="viz-card top-brand-chart">
+          <div className="viz-title"><div><span>品牌竞争</span><h2>Top10品牌入榜强度</h2></div><em>Top100商品数合计</em></div>
+          <div className="top-brand-bars">
+            {brands.map((brand, index) => <div className={brand.name === "东方雨虹" ? "yuhong" : ""} key={brand.name}><b>{index + 1}</b><strong>{brand.name}{brand.name === "东方雨虹" && <small>我方</small>}</strong><i><span style={{ width: `${brand.top100 / brandMax * 100}%` }} /></i><em>{brand.top100}</em><small>{brand.categories}品类</small></div>)}
+          </div>
+        </article>
+
+        <article className="viz-card top10-products">
+          <div className="viz-title"><div><span>单品赛道</span><h2>本周Top10产品</h2></div><em>跨品类头部商品</em></div>
+          <div className="product-card-grid">
+            {products.map((item) => <div className={item.brand === "东方雨虹" ? "yuhong" : ""} key={`${item.category}-${item.id}`}>
+              <div className="product-thumb"><span>{categoryIcon(item.category)}</span><small>{item.id.slice(-6)}</small></div>
+              <p><b>#{item.rank}</b><strong>{item.brand}</strong><span>{item.category} · {item.direction}</span></p>
+              <h3 title={item.name}>{item.name}</h3><footer><em>{item.track}</em><small>{item.status}</small></footer>
+            </div>)}
+          </div>
+        </article>
+
+        <article className="viz-card rising-products">
+          <div className="viz-title"><div><span>增长雷达</span><h2>本周上升明显的Top10产品</h2></div><em>排名改善幅度</em></div>
+          <div className="rising-list">
+            {rising.map((item, index) => <div key={item.id}><b>{index + 1}</b><span className="rise-icon">🚀</span><p><strong>{item.brand} · {item.direction}</strong><small>{item.category}｜{item.name}</small></p><em>{item.track}</em><i>+{item.change}</i></div>)}
           </div>
         </article>
       </div>

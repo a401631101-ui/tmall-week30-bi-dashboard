@@ -6,6 +6,7 @@ type Cell = string | number | boolean | null;
 type Brand = { name: string; top10: string; top30: string; top100: string; tag: string; judgment: string };
 type Product = { rank: number; brand: string; id: string; name: string; track: string; status: string; direction: string };
 type Segment = { name: string; top10: string; top30: string; top100: string; judgment: string };
+type Anomaly = { type: string; brand: string; id: string; name: string; track: string; rank: string; change: string; direction: string; judgment: string };
 
 const FILE_MAP: Record<string, string> = {
   "美缝/勾缝剂": "05", "防水涂料": "06", "玻璃胶": "07", "地漏": "08", "地坪漆": "09",
@@ -26,11 +27,21 @@ function trendValues(trend: string) {
 
 export function CategoryDashboard({ category }: { category: string }) {
   const [rows, setRows] = useState<Cell[][]>([]);
+  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [panel, setPanel] = useState<"brand" | "product" | "segment" | "action">("brand");
   useEffect(() => {
     setRows([]);
     setPanel("brand");
-    fetch(`/data/${FILE_MAP[category]}.json`).then((response) => response.json()).then((data) => setRows(data.values));
+    Promise.all([
+      fetch(`/data/${FILE_MAP[category]}.json`).then((response) => response.json()),
+      fetch("/data/03.json").then((response) => response.json()),
+    ]).then(([data, anomalyData]) => {
+      setRows(data.values);
+      setAnomalies(anomalyData.values.slice(2).filter((row: Cell[]) => value(row, 1) === category).slice(0, 8).map((row: Cell[]) => ({
+        type: value(row, 0), brand: value(row, 2), id: value(row, 3), name: value(row, 4), track: value(row, 5),
+        rank: value(row, 6), change: value(row, 8), direction: value(row, 11), judgment: value(row, 13),
+      })));
+    });
   }, [category]);
 
   const brands = useMemo<Brand[]>(() => rows.slice(13, 44).filter((row) => value(row, 1)).map((row) => ({
@@ -56,6 +67,8 @@ export function CategoryDashboard({ category }: { category: string }) {
   });
   const top10Total = brands.reduce((sum, brand) => sum + trendLast(brand.top10), 0);
   const strongest = [...brands].sort((a, b) => trendLast(b.top100) - trendLast(a.top100))[0];
+  const yuhong = brands.find((brand) => brand.name === "东方雨虹");
+  const risingType = anomalies.find((item) => item.type.includes("上升"))?.direction || segments.sort((a, b) => trendLast(b.top100) - trendLast(a.top100))[0]?.name;
   if (!rows.length) return <div className="category-loading">正在加载 {category} 完整分析…</div>;
 
   return (
@@ -89,9 +102,9 @@ export function CategoryDashboard({ category }: { category: string }) {
               const latest = trendLast(brand.top100);
               const values = trendValues(brand.top100);
               const max = Math.max(...values, 1);
-              return <div key={`${brand.name}-${index}`}>
+              return <div className={`${index < 3 ? "top-three" : ""} ${brand.name === "东方雨虹" ? "yuhong-row" : ""}`} key={`${brand.name}-${index}`}>
                 <b>{index + 1}</b>
-                <strong title={brand.name}>{brand.name}</strong>
+                <strong title={brand.name}>{index < 3 && <i>{["🥇","🥈","🥉"][index]}</i>}{brand.name}{brand.name === "东方雨虹" && <small>我方</small>}</strong>
                 <div className="matrix-mini-bars">{values.map((number, valueIndex) => <i key={valueIndex} style={{ height: `${Math.max(16, number / max * 100)}%` }} />)}</div>
                 <span>{brand.top100}</span>
                 <em className={values[2] > values[0] ? "grow" : values[2] < values[0] ? "shrink" : "flat"}>{brand.tag}</em>
@@ -102,15 +115,20 @@ export function CategoryDashboard({ category }: { category: string }) {
 
         {panel === "product" && <article className="light-card top-product-chart">
           <div className="light-title"><div><span>头部商品</span><h3>Top10三周轨迹</h3></div><small>排名越小越强</small></div>
-          <div className="product-tracks-light">
+          <div className="category-product-cards">
             {products.map((product) => {
               const values = trendValues(product.track);
               return <div key={product.id}>
-                <span className="rank-pill">{product.rank}</span>
-                <p><strong>{product.brand}</strong><small>{product.direction} · {product.status}</small></p>
-                <div>{values.map((number, index) => <i key={index} style={{ height: `${Math.max(12, 92 - number * 5)}%` }}><b>{number}</b></i>)}</div>
+                <div className="category-product-thumb"><span>{product.direction.includes("彩砂") ? "🧱" : /漆|涂/.test(category) ? "🎨" : /龙头|花洒/.test(category) ? "🚿" : "📦"}</span><small>{product.id.slice(-6)}</small></div>
+                <p><b>#{product.rank}</b><strong>{product.brand}</strong><small>{product.direction} · {product.status}</small></p>
+                <h4 title={product.name}>{product.name}</h4>
+                <div className="product-rank-mini">{values.map((number, index) => <i key={index} style={{ height: `${Math.max(12, 92 - number * 5)}%` }}><b>{number}</b></i>)}</div>
               </div>;
             })}
+          </div>
+          <div className="category-anomalies">
+            <div className="light-title"><div><span>异动产品</span><h3>本周机会与预警</h3></div><small>来自全品类异动明细</small></div>
+            {anomalies.map((item) => <div key={`${item.type}-${item.id}`}><span className={item.type.includes("上升") || Number(item.change) > 0 ? "up" : "down"}>{item.type.includes("上升") || Number(item.change) > 0 ? "↗" : "↘"}</span><p><strong>{item.brand} · {item.direction}</strong><small>{item.name}</small></p><em>{item.track}</em><b>{item.change ? `${Number(item.change) > 0 ? "+" : ""}${item.change}` : item.rank}</b></div>)}
           </div>
         </article>}
 
@@ -120,7 +138,7 @@ export function CategoryDashboard({ category }: { category: string }) {
             {segments.map((segment, index) => {
               const top100 = trendLast(segment.top100);
               const top10 = trendLast(segment.top10);
-              return <div key={`${segment.name}-${index}`} style={{ "--fill": `${Math.max(12, Math.min(100, top100 * 4))}%` } as React.CSSProperties}>
+              return <div className={segment.name.includes("彩砂") ? "keyword-focus" : ""} key={`${segment.name}-${index}`} style={{ "--fill": `${Math.max(12, Math.min(100, top100 * 4))}%` } as React.CSSProperties}>
                 <strong>{segment.name}</strong><b>{top100}</b><small>Top10：{top10}</small><span>{segment.judgment}</span>
               </div>;
             })}
@@ -130,9 +148,14 @@ export function CategoryDashboard({ category }: { category: string }) {
         {panel === "action" && <article className="light-card conclusion-card">
           <div className="light-title"><div><span>行动建议</span><h3>本周关注重点</h3></div></div>
           <div className="action-cards">
-            <div><span>品牌</span><strong>{expanding[0]?.name ?? strongest?.name ?? "观察头部品牌"}</strong><small>优先跟进矩阵扩张</small></div>
-            <div><span>单品</span><strong>{products.find((item) => item.status.includes("上升") || item.status.includes("冲入"))?.brand ?? products[0]?.brand ?? "—"}</strong><small>复盘排名改善原因</small></div>
-            <div><span>细分</span><strong>{segments.sort((a, b) => trendLast(b.top100) - trendLast(a.top100))[0]?.name ?? "—"}</strong><small>关注Top100规模</small></div>
+            <div><span>👑 绝对优势品牌</span><strong>{strongest?.name ?? "—"}</strong><small>Top100 {strongest ? trendLast(strongest.top100) : 0}席，保持头部防守</small></div>
+            <div><span>🚀 上升品牌</span><strong>{expanding[0]?.name ?? "暂无明显扩张"}</strong><small>{expanding[0]?.top100 ?? "持续观察三周趋势"}</small></div>
+            <div><span>🔥 上升产品类型</span><strong>{risingType ?? "—"}</strong><small>结合搜索人气验证增长质量</small></div>
+          </div>
+          <div className="yuhong-action">
+            <span>东方雨虹行动策略</span>
+            <strong>{yuhong ? `${category}当前Top10 / Top30 / Top100：${yuhong.top10} / ${yuhong.top30} / ${yuhong.top100}` : `东方雨虹尚未进入${category}品牌矩阵`}</strong>
+            <p>{yuhong ? (trendLast(yuhong.top10) > 0 ? "巩固头部链接：优先守住Top10商品，放大高转化素材；针对上升产品类型补充差异化卖点，同时对连续下降链接进行价格、评价和投放诊断。" : "扩大头部突破：现有Top100矩阵具备基础，集中资源将高潜链接推入Top30；围绕增长关键词布局内容与搜索承接，避免长尾铺货分散预算。") : "优先评估类目进入价值：从增长细分词切入，以1—2个差异化产品验证搜索承接与转化，再决定是否扩充矩阵。"}</p>
           </div>
           <div className="decision-scale">
             <span>头部集中</span><i><b style={{ width: `${Math.min(100, products.filter((item) => item.rank <= 3).length * 25)}%` }} /></i><strong>{products.filter((item) => item.rank <= 3).length}个Top3</strong>
