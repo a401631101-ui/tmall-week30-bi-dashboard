@@ -62,6 +62,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 #tab-products .pimg{height:400px}
 #tab-anomalies .pimg{height:400px}
 #tab-category .pimg{height:400px}
+#tab-category .category-anomalies .pimg{height:200px}
 .pimg .noimg{display:flex;flex-direction:column;align-items:center;gap:4px;color:#bbb;font-size:12px}.pimg .noimg span{font-size:30px;opacity:.5}
 .prank{position:absolute;top:7px;left:7px;width:32px;height:32px;display:grid;place-items:center;background:var(--red);color:#fff;border-radius:7px 14px 7px 14px;font-size:14px;font-weight:900;box-shadow:0 2px 8px rgba(224,46,59,.4);z-index:2}
 .prank.t3{background:var(--gold);box-shadow:0 2px 8px rgba(232,164,0,.4)}
@@ -516,7 +517,7 @@ function renderCatDetail(){initData(function(D){
     // Top10 products
     '<div class="card"><h3>🎯 Top10产品 · 点击查看天猫主图</h3><div class="pgrid pg5">'+d.products.map(function(p,i){var hlc=i<3?' hl-'+(i+1):'';return pCard(p).replace('class="pcard','class="pcard'+hlc)}).join('')+'</div></div>'+
     // Anomaly zones
-    (hasAnos?'<div class="card"><h3>⚡ 异动信号 <span class="tag">按类型分组 · 滚动查看更多</span></h3>'+
+    (hasAnos?'<div class="card category-anomalies"><h3>⚡ 异动信号 <span class="tag">按类型分组 · 滚动查看更多</span></h3>'+
       '<div class="g2" style="margin-bottom:10px">'+anoBlockScroll('⬆ 连续两周上升',d.anos.upTwo,'var(--green)')+anoBlockScroll('⬇ 连续两周下降',d.anos.downTwo,'var(--red)')+'</div>'+
       '<div class="g2" style="margin-bottom:10px">'+anoBlockScroll('⬆ 单周上升 &gt;20名',d.anos.upJump,'var(--green)')+anoBlockScroll('⬇ 单周下降 &gt;20名',d.anos.downDrop,'var(--red)')+'</div>'+
       '<div class="g2">'+anoBlockScroll('🆕 新进前100',d.anos.newIn,'var(--green)')+anoBlockScroll('🚫 跌出前100',d.anos.exit,'var(--red)')+'</div></div>':'')+
