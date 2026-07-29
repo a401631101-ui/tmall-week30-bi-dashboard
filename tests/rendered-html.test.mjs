@@ -59,6 +59,8 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.match(html, /#tab-anomalies \.pimg\{height:400px\}/);
   assert.match(html, /#tab-category \.pimg\{height:400px\}/);
   assert.match(html, /#tab-category \.category-anomalies \.pimg\{height:200px\}/);
+  assert.match(html, /#overviewProducts \.pimg,#risingProducts \.pimg\{height:400px\}/);
+  assert.match(html, /#tab-anomalies \.pgrid\{grid-template-columns:repeat\(5,1fr\)\}/);
   assert.match(html, /class="card category-anomalies"/);
   assert.match(html, /#tab-anomalies \.pbody \.pm,#tab-category \.category-anomalies \.pbody \.pm\{flex-direction:column/);
   assert.match(html, /isUp=status\.includes\('↑'\)/);
