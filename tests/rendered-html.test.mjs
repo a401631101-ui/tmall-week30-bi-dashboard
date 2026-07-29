@@ -52,6 +52,11 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.match(html, /品牌周对比/);
   assert.match(html, /id="nav-products"/);
   assert.match(html, /id="headerCatFilter"/);
+  assert.match(html, /id="weekFilter"/);
+  assert.match(html, /第28周 · 07\.06—07\.12/);
+  assert.match(html, /function handleWeekFilter/);
+  assert.match(html, /function weekV/);
+  assert.match(html, /rank:weekRank\(p\.track,p\.rank\)/);
   assert.match(html, /onchange="handleHeaderCatFilter\(\)"/);
   assert.match(html, /selected==='全部'\?CATS:\[selected\]/);
   assert.match(html, /active\.id==='tab-products'/);

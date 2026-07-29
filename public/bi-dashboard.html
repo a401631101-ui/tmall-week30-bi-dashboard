@@ -217,11 +217,17 @@ footer{text-align:center;padding:10px;color:var(--muted);font-size:10px;border-t
   <button class="mobile-menu" id="mobileMenu" type="button" aria-controls="sidebar" aria-expanded="false">☰ 导航</button>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <h1><span>东方雨虹</span> · 天猫重点品类市场竞品看板</h1>
+    <label for="weekFilter" style="font-weight:800;font-size:13px">周次</label>
+    <select id="weekFilter" onchange="handleWeekFilter()" style="min-width:180px">
+      <option value="0">第28周 · 07.06—07.12</option>
+      <option value="1">第29周 · 07.13—07.19</option>
+      <option value="2" selected>第30周 · 07.20—07.26</option>
+    </select>
     <label for="headerCatFilter" style="font-weight:800;font-size:13px">类目</label>
     <select id="headerCatFilter" onchange="handleHeaderCatFilter()" style="min-width:130px"><option value="全部">全品类</option></select>
     <div id="topBrandTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
   </div>
-  <span class="period">第30周 · 2026.07.20 — 07.26 · 第28周→第29周→第30周</span>
+  <span class="period" id="weekPeriod">第30周 · 2026.07.20 — 07.26 · 第28周→第29周→第30周</span>
 </header>
 <div class="content">
 
@@ -291,6 +297,9 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function escA(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function lastV(t){var p=String(t).split('→');return parseInt(p[p.length-1])||0}
 function vals(t){return String(t).split('→').map(Number).filter(function(n){return!isNaN(n)})}
+function selectedWeekIndex(){var s=document.getElementById('weekFilter');return s?Math.max(0,Math.min(2,Number(s.value)||0)):2}
+function weekV(t){var n=vals(t),i=selectedWeekIndex();return n[i]===undefined?lastV(t):n[i]}
+function weekRank(t,fallback){var p=String(t||'').split('→'),v=parseInt(p[selectedWeekIndex()]);return Number.isFinite(v)?v:(Number(fallback)||999)}
 function trendH(t){if(!t)return'';var n=vals(t),m=Math.max(1,Math.max.apply(null,n));return'<span class="tmini">'+n.map(function(v){return'<i style="height:'+Math.max(14,v/m*100)+'%"></i>'}).join('')+'</span>'}
 function getT(j){j=(j||'');if(j.includes('增强')||j.includes('扩大')||j.includes('扩张')||j.includes('冲榜'))return'bp';if(j.includes('预警')||j.includes('走弱')||j.includes('收缩'))return'bd';if(j.includes('回落'))return'bw';return'bn'}
 function pUrl(id){return'https://detail.tmall.com/item.htm?id='+encodeURIComponent(id)}
@@ -304,6 +313,14 @@ function handleHeaderCatFilter(){
   renderTopBrandTags();
   var active=document.querySelector('.tab-panel.active');
   if(active&&active.id==='tab-products')renderTop10Products();
+}
+function handleWeekFilter(){
+  var labels=['第28周 · 2026.07.06 — 07.12','第29周 · 2026.07.13 — 07.19','第30周 · 2026.07.20 — 07.26'],period=document.getElementById('weekPeriod');if(period)period.textContent=labels[selectedWeekIndex()]+' · 三周对比';
+  renderTopBrandTags();
+  var active=document.querySelector('.tab-panel.active');
+  if(!active||active.id==='tab-overview')renderOverview();
+  else if(active.id==='tab-products')renderTop10Products();
+  else if(active.id==='tab-category')renderCatDetail();
 }
 function closeMobileNav(){var s=document.getElementById('sidebar'),b=document.getElementById('mobileMenu');if(s)s.classList.remove('mobile-open');if(b)b.setAttribute('aria-expanded','false')}
 function enhanceAccessibility(){document.querySelectorAll('button').forEach(function(b){if(!b.type)b.type='button'});document.querySelectorAll('.chart-box').forEach(function(c){c.setAttribute('role','img');var h=c.closest('.card')?.querySelector('h3');c.setAttribute('aria-label',h?h.textContent.trim():'数据图表')})}
@@ -369,8 +386,9 @@ function initData(cb){if(_dashboardData){if(cb)cb(_dashboardData);return Promise
 // ── RENDER FUNCTIONS ──
 function renderOverview(){initData(function(D){
   var yh={top10:0,top30:0,top100:0,cats:0},topCat='',topV=0,yhCats=[];
-  CATS.forEach(function(c){var d=D.allCat[c];if(!d)return;d.brands.filter(function(b){return b.name==='东方雨虹'}).forEach(function(b){yh.top10+=lastV(b.top10);yh.top30+=lastV(b.top30);yh.top100+=lastV(b.top100);yhCats.push({name:c,t10:vals(b.top10),t30:vals(b.top30),t100:vals(b.top100),tag:b.tag})});if(d.brands.some(function(b){return b.name==='东方雨虹'}))yh.cats++});
-  yhCats.forEach(function(x){if(x.t100[2]>topV){topV=x.t100[2];topCat=x.name}});
+  var wi=selectedWeekIndex();
+  CATS.forEach(function(c){var d=D.allCat[c];if(!d)return;d.brands.filter(function(b){return b.name==='东方雨虹'}).forEach(function(b){yh.top10+=weekV(b.top10);yh.top30+=weekV(b.top30);yh.top100+=weekV(b.top100);yhCats.push({name:c,t10:vals(b.top10),t30:vals(b.top30),t100:vals(b.top100),tag:b.tag})});if(d.brands.some(function(b){return weekV(b.top100)>0&&b.name==='东方雨虹'}))yh.cats++});
+  yhCats.forEach(function(x){if((x.t100[wi]||0)>topV){topV=x.t100[wi]||0;topCat=x.name}});
   document.getElementById('yuhongKpis').innerHTML=
     '<div class="kpi-card"><div class="kl">覆盖品类</div><div class="kv" style="color:var(--blue)">'+yh.cats+'<small style="font-size:16px;color:var(--muted)">/15</small></div><div class="ks">雨虹入榜品类数</div></div>'+
     '<div class="kpi-card"><div class="kv" style="color:var(--red)">'+yh.top10+'</div><div class="kl">Top10 席位</div><div class="ks">头部商品占位</div></div>'+
@@ -387,14 +405,14 @@ function renderOverview(){initData(function(D){
 
   // Build brand-category map for drill-down
   var brandCatMap={};D.brands.forEach(function(r){var n=r[0];if(!brandCatMap[n])brandCatMap[n]=[];brandCatMap[n].push({top100:lastV(r[4])})});
-  var bm={};D.brands.forEach(function(r){var n=r[0],v=lastV(r[4]);if(v>0)bm[n]=(bm[n]||0)+v});
+  var bm={};D.brands.forEach(function(r){var n=r[0],v=weekV(r[4]);if(v>0)bm[n]=(bm[n]||0)+v});
   var tb=Object.entries(bm).sort(function(a,b){return b[1]-a[1]}).slice(0,10),bMax=Math.max(1,Math.max.apply(null,tb.map(function(x){return x[1]})));
   document.getElementById('topBrandBars').innerHTML=tb.map(function(x,i){var isYh=x[0]==='东方雨虹';return'<div class="bbar'+(isYh?' yh':'')+'" role="button" tabindex="0" style="cursor:pointer" onclick="showBrandDetail(\''+escA(x[0])+'\')" title="点击查看'+escA(x[0])+'在各品类的分布"><b>'+(i+1)+'</b><strong>'+esc(x[0])+(isYh?'<span class="yhbadge">雨虹</span>':'')+'</strong><i><em style="width:'+(x[1]/bMax*100)+'%"></em></i><em>'+x[1]+'</em></div>'}).join('');
   // Brand drill-down container
   if(!document.getElementById('brandDrillDown')){var dd=document.createElement('div');dd.id='brandDrillDown';dd.style.cssText='margin-top:8px;display:none';document.getElementById('topBrandBars').parentNode.appendChild(dd)}
 
   // Overview products with category info
-  var ap=[];CATS.forEach(function(c){if(D.allCat[c]){var ps=D.allCat[c].products.slice(0,4);ps.forEach(function(p){p.category=c});ap=ap.concat(ps)}});ap.sort(function(a,b){return a.rank-b.rank});
+  var ap=[];CATS.forEach(function(c){if(D.allCat[c]){var ps=D.allCat[c].products.map(function(p){return Object.assign({},p,{category:c,rank:weekRank(p.track,p.rank)})}).sort(function(a,b){return a.rank-b.rank}).slice(0,4);ap=ap.concat(ps)}});ap.sort(function(a,b){return a.rank-b.rank});
   document.getElementById('overviewProducts').innerHTML=ap.slice(0,10).map(function(p){return pCard(p)}).join('');
 
   // Rising products - show as product cards with category and direction
@@ -567,9 +585,9 @@ function showSegPopup(name,top10,top30,top100,judgment){
 function renderTopBrandTags(){initData(function(D){
   var cat=document.getElementById('headerCatFilter').value,rows=[];
   if(cat==='全部'){
-    rows=D.brands.map(function(r){return{name:r[0],value:lastV(r[4])}})
+    rows=D.brands.map(function(r){return{name:r[0],value:weekV(r[4])}})
   }else{
-    var d=D.allCat[cat];rows=(d?d.brands:[]).map(function(b){return{name:b.name,value:lastV(b.top100)}})
+    var d=D.allCat[cat];rows=(d?d.brands:[]).map(function(b){return{name:b.name,value:weekV(b.top100)}})
   }
   rows=rows.filter(function(x){return x.value>0}).sort(function(a,b){return b.value-a.value}).slice(0,10);
   var wrap=document.getElementById('topBrandTags');wrap.replaceChildren();
@@ -582,7 +600,7 @@ function renderTop10Products(){initData(function(D){
   var scope=selected==='全部'?'跨品类 Top10 产品':selected+' Top10 产品';
   var note=selected==='全部'?'按15个类目分组展示头部商品，点击卡片进入天猫详情':'仅展示当前筛选类目的Top10商品，点击卡片进入天猫详情';
   var h='<div class="kpi-row"><div class="kpi-card" style="grid-column:span 5"><div class="kl">'+esc(scope)+'</div><div class="kv" style="font-size:24px">正在统计</div><div class="ks">'+esc(note)+'</div></div></div>';
-  cats.forEach(function(c){var ps=(D.allCat[c]?.products||[]).slice().sort(function(a,b){return a.rank-b.rank}).slice(0,10);total+=ps.length;ps.forEach(function(p){p.category=c});h+='<div class="card"><h3>'+esc(c)+'<span class="tag">'+ps.length+'个Top10商品</span></h3><div class="pgrid pg5">'+ps.map(function(p){return pCard(p)}).join('')+'</div></div>'});
+  cats.forEach(function(c){var ps=(D.allCat[c]?.products||[]).map(function(p){return Object.assign({},p,{category:c,rank:weekRank(p.track,p.rank)})}).sort(function(a,b){return a.rank-b.rank}).slice(0,10);total+=ps.length;h+='<div class="card"><h3>'+esc(c)+'<span class="tag">'+ps.length+'个Top10商品</span></h3><div class="pgrid pg5">'+ps.map(function(p){return pCard(p)}).join('')+'</div></div>'});
   el.innerHTML=h.replace('正在统计','共 '+total+' 个头部商品');
 })}
 
