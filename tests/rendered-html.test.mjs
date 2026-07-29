@@ -60,6 +60,7 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.match(html, /#tab-category \.pimg\{height:400px\}/);
   assert.match(html, /#tab-category \.category-anomalies \.pimg\{height:200px\}/);
   assert.match(html, /class="card category-anomalies"/);
+  assert.match(html, /#tab-anomalies \.pbody \.pm,#tab-category \.category-anomalies \.pbody \.pm\{flex-direction:column/);
   assert.match(html, /isUp=status\.includes\('↑'\)/);
   assert.match(html, /isDown=status\.includes\('↓'\)/);
   assert.match(html, /\.ps-up\{color:var\(--red\)/);
