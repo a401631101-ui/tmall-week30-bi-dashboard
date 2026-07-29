@@ -52,6 +52,9 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.match(html, /品牌周对比/);
   assert.match(html, /id="nav-products"/);
   assert.match(html, /id="headerCatFilter"/);
+  assert.match(html, /onchange="handleHeaderCatFilter\(\)"/);
+  assert.match(html, /selected==='全部'\?CATS:\[selected\]/);
+  assert.match(html, /active\.id==='tab-products'/);
   assert.doesNotMatch(html, /id="nav-gallery"/);
   assert.doesNotMatch(html, /cdn\.jsdelivr\.net/);
 

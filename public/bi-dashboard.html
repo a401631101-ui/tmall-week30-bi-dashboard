@@ -209,7 +209,7 @@ footer{text-align:center;padding:10px;color:var(--muted);font-size:10px;border-t
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <h1><span>东方雨虹</span> · 天猫重点品类市场竞品看板</h1>
     <label for="headerCatFilter" style="font-weight:800;font-size:13px">类目</label>
-    <select id="headerCatFilter" onchange="renderTopBrandTags()" style="min-width:130px"><option value="全部">全品类</option></select>
+    <select id="headerCatFilter" onchange="handleHeaderCatFilter()" style="min-width:130px"><option value="全部">全品类</option></select>
     <div id="topBrandTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
   </div>
   <span class="period">第30周 · 2026.07.20 — 07.26 · 第28周→第29周→第30周</span>
@@ -291,6 +291,11 @@ function pCard(p){var img=_images[p.id]||('./product-images/'+encodeURIComponent
 // Sidebar
 (function(){var h='';CATS.forEach(function(c,i){h+='<button class="side-cat" onclick="document.getElementById(\'headerCatFilter\').value=\''+c+'\';switchTab(\'category\');document.getElementById(\'catSel\').value=\''+c+'\';renderCatDetail();renderTopBrandTags()"><span class="n">'+(i+1).toString().padStart(2,'0')+'</span>'+c+'</button>'});document.getElementById('sideCats').innerHTML=h})();
 (function(){var s=document.getElementById('headerCatFilter');CATS.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;s.appendChild(o)})})();
+function handleHeaderCatFilter(){
+  renderTopBrandTags();
+  var active=document.querySelector('.tab-panel.active');
+  if(active&&active.id==='tab-products')renderTop10Products();
+}
 function closeMobileNav(){var s=document.getElementById('sidebar'),b=document.getElementById('mobileMenu');if(s)s.classList.remove('mobile-open');if(b)b.setAttribute('aria-expanded','false')}
 function enhanceAccessibility(){document.querySelectorAll('button').forEach(function(b){if(!b.type)b.type='button'});document.querySelectorAll('.chart-box').forEach(function(c){c.setAttribute('role','img');var h=c.closest('.card')?.querySelector('h3');c.setAttribute('aria-label',h?h.textContent.trim():'数据图表')})}
 document.getElementById('mobileMenu').addEventListener('click',function(){var s=document.getElementById('sidebar'),open=s.classList.toggle('mobile-open');this.setAttribute('aria-expanded',String(open))});
@@ -561,9 +566,12 @@ function renderTopBrandTags(){initData(function(D){
 })}
 
 function renderTop10Products(){initData(function(D){
-  var el=document.getElementById('top10ProductGrid'),total=0,h='<div class="kpi-row"><div class="kpi-card" style="grid-column:span 5"><div class="kl">跨品类 Top10 产品</div><div class="kv" style="font-size:24px">15品类 × 每类10个</div><div class="ks">按类目分组展示完整150个头部商品，点击卡片进入天猫详情</div></div></div>';
-  CATS.forEach(function(c){var ps=(D.allCat[c]?.products||[]).slice().sort(function(a,b){return a.rank-b.rank}).slice(0,10);total+=ps.length;ps.forEach(function(p){p.category=c});h+='<div class="card"><h3>'+esc(c)+'<span class="tag">'+ps.length+'个Top10商品</span></h3><div class="pgrid pg5">'+ps.map(function(p){return pCard(p)}).join('')+'</div></div>'});
-  el.innerHTML=h.replace('15品类 × 每类10个','共 '+total+' 个头部商品');
+  var el=document.getElementById('top10ProductGrid'),selected=document.getElementById('headerCatFilter').value,cats=selected==='全部'?CATS:[selected],total=0;
+  var scope=selected==='全部'?'跨品类 Top10 产品':selected+' Top10 产品';
+  var note=selected==='全部'?'按15个类目分组展示头部商品，点击卡片进入天猫详情':'仅展示当前筛选类目的Top10商品，点击卡片进入天猫详情';
+  var h='<div class="kpi-row"><div class="kpi-card" style="grid-column:span 5"><div class="kl">'+esc(scope)+'</div><div class="kv" style="font-size:24px">正在统计</div><div class="ks">'+esc(note)+'</div></div></div>';
+  cats.forEach(function(c){var ps=(D.allCat[c]?.products||[]).slice().sort(function(a,b){return a.rank-b.rank}).slice(0,10);total+=ps.length;ps.forEach(function(p){p.category=c});h+='<div class="card"><h3>'+esc(c)+'<span class="tag">'+ps.length+'个Top10商品</span></h3><div class="pgrid pg5">'+ps.map(function(p){return pCard(p)}).join('')+'</div></div>'});
+  el.innerHTML=h.replace('正在统计','共 '+total+' 个头部商品');
 })}
 
 var _brandSort='top100';
