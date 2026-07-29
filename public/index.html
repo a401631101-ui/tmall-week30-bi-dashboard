@@ -1,13 +1,606 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>第30周天猫重点品类市场竞品看板</title>
-    <meta http-equiv="refresh" content="0; url=./bi-dashboard.html">
-    <link rel="canonical" href="./bi-dashboard.html">
-  </head>
-  <body>
-    <p><a href="./bi-dashboard.html">打开天猫重点品类市场竞品看板</a></p>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第30周天猫重点品类市场竞品看板 · 东方雨虹</title>
+<script src="./vendor/echarts.min.js"></script>
+<style>
+:root{--red:#e02e3b;--r2:#c72530;--ink:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;--bg:#f2f2f7;--white:#fff;--blue:#0071e3;--green:#007a5e;--amber:#e87c00;--purple:#894dde;--gold:#e8a400}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","微软雅黑","PingFang SC",sans-serif}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+.app{display:grid;grid-template-columns:200px 1fr;height:100vh}
+.sidebar{background:#1d1d20;color:#ccc;display:flex;flex-direction:column;overflow-y:auto;padding:16px 0}
+.side-logo{display:flex;align-items:center;gap:10px;padding:0 14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.side-logo .logo{width:38px;height:38px;display:grid;place-items:center;background:var(--red);border-radius:10px;color:#fff;font-weight:900;font-size:14px;flex-shrink:0}
+.side-logo strong{font-size:15px;color:#fff}.side-logo small{display:block;color:#888;font-size:10px;margin-top:2px}
+.side-label{padding:14px 14px 6px;color:#6e6e73;font-size:10px;font-weight:800;letter-spacing:.06em}
+.side-btn,.side-cat{display:flex;align-items:center;gap:8px;width:calc(100% - 10px);margin:1px 5px;padding:9px 10px;border:0;background:transparent;color:#aaa;border-radius:6px;cursor:pointer;font-size:13px;text-align:left}
+.side-btn:hover,.side-cat:hover{background:rgba(255,255,255,.04);color:#eee}
+.side-btn.active{background:var(--red);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(224,46,59,.3)}
+.side-btn i{font-style:normal;width:18px;text-align:center;font-size:12px}
+.side-cats{flex:1;overflow-y:auto;padding:4px 0}
+.side-cat{font-size:12px;padding:7px 10px}.side-cat .n{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;background:rgba(255,255,255,.05);border-radius:5px;font-size:10px;color:#888;flex-shrink:0}
+.side-cat:hover .n{background:var(--red);color:#fff}.side-cat.active{background:rgba(224,46,59,.12);color:#fff}.side-cat.active .n{background:var(--red);color:#fff}
+.side-foot{padding:12px 14px 0;border-top:1px solid rgba(255,255,255,.06);font-size:10px;color:#777}.side-foot strong{display:block;color:#ccc;font-size:12px;margin:3px 0}
+
+.main{overflow-y:auto;overflow-x:hidden}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--white);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.topbar h1{font-size:22px;font-weight:900;letter-spacing:-.02em}.topbar h1 span{color:var(--red)}
+.topbar .period{color:var(--muted);font-size:12px}
+.content{padding:14px 18px 24px}.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.kpi-card{position:relative;padding:16px 16px;background:var(--white);border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.05);overflow:hidden;transition:.15s}
+.kpi-card:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.kpi-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+.kpi-card:nth-child(1)::before{background:var(--blue)}.kpi-card:nth-child(2)::before{background:var(--red)}.kpi-card:nth-child(3)::before{background:var(--green)}.kpi-card:nth-child(4)::before{background:var(--purple)}.kpi-card:nth-child(5)::before{background:var(--amber)}
+.kpi-card .kl{font-size:12px;color:var(--muted);font-weight:700}.kpi-card .kv{font-size:28px;font-weight:900;margin:5px 0 2px;letter-spacing:-.02em}.kpi-card .ks{font-size:11px;color:var(--muted)}
+
+/* Grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px}
+
+.card{background:var(--white);border-radius:10px;padding:16px 18px;box-shadow:0 1px 6px rgba(0,0,0,.05);margin-bottom:10px}
+.card h3{font-size:16px;font-weight:900;margin-bottom:12px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+.card h3 .tag{font-size:13px;font-weight:700;color:var(--muted);background:#f0f0f5;padding:4px 10px;border-radius:10px}
+.chart-box{width:100%}.h300{height:300px}.h350{height:350px}
+
+/* Product image cards */
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pgrid.pg5{grid-template-columns:repeat(5,1fr)}
+.pgrid.pg3{grid-template-columns:repeat(3,1fr)}
+.pcard{background:var(--white);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .18s;text-decoration:none;color:inherit;display:block}
+.pcard:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.1);border-color:#bbb}
+.pcard.yuhong{border:2px solid var(--red);background:#fff5f5}
+.pcard.hot{border:2px solid #e8a400;background:linear-gradient(135deg,#fffdf5,#fff9e8)}
+.pcard.yuhong.hot{border:2px solid var(--red);background:linear-gradient(135deg,#fff5f5,#ffe8e8)}
+.pimg{position:relative;height:190px;background:#fff;display:grid;place-items:center;overflow:hidden;padding:6px}
+.pimg img{width:100%;height:100%;object-fit:contain;object-position:center;display:block}
+.pimg .noimg{display:flex;flex-direction:column;align-items:center;gap:4px;color:#bbb;font-size:12px}.pimg .noimg span{font-size:30px;opacity:.5}
+.prank{position:absolute;top:7px;left:7px;width:32px;height:32px;display:grid;place-items:center;background:var(--red);color:#fff;border-radius:7px 14px 7px 14px;font-size:14px;font-weight:900;box-shadow:0 2px 8px rgba(224,46,59,.4);z-index:2}
+.prank.t3{background:var(--gold);box-shadow:0 2px 8px rgba(232,164,0,.4)}
+.pstatus{position:absolute;top:8px;right:7px;padding:4px 9px;border-radius:10px;font-size:12px;font-weight:800;z-index:2}
+.ps-good{color:var(--green);background:#e6f5f0}.ps-warn{color:var(--amber);background:#fff4e6}.ps-risk{color:var(--red);background:#ffeaea}
+.pbody{padding:11px 13px}.pbody .pb{font-size:15px;font-weight:900;display:flex;align-items:center;gap:5px;letter-spacing:-.01em}
+.pbody .pb .yhtag{font-size:11px;background:var(--red);color:#fff;padding:2px 5px;border-radius:4px;font-weight:700}
+.pbody .pn{font-size:13px;color:var(--muted);line-height:1.5;margin:5px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:39px}
+.pbody .pt{font-size:12px;font-weight:800;font-family:SF Mono,Menlo,monospace;color:var(--blue);margin:4px 0}
+.pbody .pm{display:flex;gap:10px;font-size:11px;color:var(--muted)}.pbody .pm strong{color:var(--ink);font-size:12px}
+.pfoot{display:flex;justify-content:space-between;padding:9px 13px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}.pfoot a{color:var(--red);text-decoration:none;font-weight:800}
+/* Product tags */
+.ptags{display:flex;gap:5px;margin:4px 0}.ptag-cat{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#e8f0fe;color:#0071e3}.ptag-dir{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#fef0e6;color:#e87c00}
+
+/* Brand bars */
+.bbar{display:grid;grid-template-columns:22px 90px 1fr 30px;align-items:center;gap:8px;padding:5px 6px;border-radius:5px;font-size:13px}
+.bbar:nth-child(odd){background:#f9f9fb}.bbar.yh{background:#fff0f0;outline:1px solid #ffcccc}
+.bbar b{color:#999;font-size:11px;font-weight:800}.bbar strong{font-size:13px;font-weight:800}
+.bbar i{height:10px;background:#e8e8ed;border-radius:5px;overflow:hidden}.bbar i em{display:block;height:100%;border-radius:inherit}
+.bbar:nth-child(1) i em{background:linear-gradient(90deg,#5ea8ff,var(--blue))}
+.bbar:nth-child(2) i em{background:linear-gradient(90deg,#40b894,var(--green))}
+.bbar:nth-child(3) i em{background:linear-gradient(90deg,#b095e8,var(--purple))}
+.bbar:nth-child(4) i em{background:linear-gradient(90deg,#ffb84d,var(--amber))}
+.bbar:nth-child(5) i em{background:linear-gradient(90deg,#ff5e6b,var(--red))}
+.bbar.yh i em{background:linear-gradient(90deg,#ff5e6b,var(--red))!important}
+.bbar em{font-style:normal;font-weight:800;text-align:right;font-size:13px}
+.yhbadge{font-size:11px;background:var(--red);color:#fff;padding:2px 5px;border-radius:4px;margin-left:4px;font-weight:700}
+
+/* Anomaly items */
+.aitem{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:5px;background:#f9f9fb;font-size:13px;text-decoration:none;color:inherit;cursor:pointer}
+.aitem:hover{background:#f2f2f7}.aitem.up{border-left:3px solid var(--green)}.aitem.down{border-left:3px solid var(--red)}
+.aitem .ad{font-weight:900;font-size:14px}.aitem .ad.up{color:var(--green)}.aitem .ad.down{color:var(--red)}
+.aitem strong{display:block;font-size:13px;font-weight:800}.aitem small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+
+/* Anomaly grid in category */
+.ano-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ano-block{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff}.ano-block h4{font-size:11px;font-weight:800;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.ano-block h4.up{color:var(--green)}.ano-block h4.down{color:var(--red)}
+.ano-row{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:6px;padding:4px 0;font-size:11px;border-bottom:1px solid #f5f5f7;text-decoration:none;color:inherit;cursor:pointer}
+.ano-row:last-child{border-bottom:0}.ano-row:hover{background:#fafafa}
+.ano-row b{color:var(--muted);font-size:11px}.ano-row .an{font-size:12px;font-weight:700}.ano-row .at{color:var(--muted);font-size:11px}.ano-row .adelta{font-weight:900;font-size:12px}.ano-row .adelta.u{color:var(--green)}.ano-row .adelta.d{color:var(--red)}
+
+/* Tables */
+.scroll-table{overflow:auto;border:1px solid var(--line);border-radius:8px;max-height:calc(100vh - 180px)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f5f7;font-weight:800;font-size:12px;padding:9px 10px;text-align:left;border-bottom:2px solid #ddd;position:sticky;top:0;z-index:2;white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #eee}tbody tr:hover{background:#fafafa}
+.badge{display:inline-block;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.bp{color:var(--green);background:#e6f5f0}.bd{color:var(--red);background:#ffeaea}.bw{color:var(--amber);background:#fff4e6}.bn{color:var(--muted);background:#f0f0f5}
+
+/* Controls */
+.cbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:8px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.cbar label{font-size:13px;font-weight:800;color:var(--ink)}.cbar span{color:var(--muted);font-size:13px}
+select,input[type=text]{background:var(--white);border:1px solid #d5d5dd;border-radius:6px;padding:7px 10px;font-size:13px;outline:none}select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.1)}
+
+/* Segment cards */
+.seg-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.seg-card{padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--white)}
+.seg-card:nth-child(1){border-top:3px solid var(--red)}.seg-card:nth-child(2){border-top:3px solid var(--blue)}.seg-card:nth-child(3){border-top:3px solid var(--green)}.seg-card:nth-child(4){border-top:3px solid var(--amber)}
+.seg-card .sk{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px}.seg-card .sv{font-size:22px;font-weight:900;letter-spacing:-.02em}.seg-card .st{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+
+/* Segment keywords */
+.seg-keywords{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.seg-kw{padding:14px;border-radius:10px;background:var(--white);border:1px solid var(--line)}.seg-kw:nth-child(1){border-left:3px solid var(--red)}.seg-kw:nth-child(2){border-left:3px solid var(--blue)}.seg-kw:nth-child(3){border-left:3px solid var(--green)}.seg-kw:nth-child(4){border-left:3px solid var(--amber)}.seg-kw:nth-child(5){border-left:3px solid var(--purple)}
+.seg-kw .kw{font-size:19px;font-weight:900;margin:3px 0;letter-spacing:-.01em}.seg-kw .km{font-size:12px;color:var(--muted)}.seg-kw .kt{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}
+
+/* Action cards - color filled */
+.act-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.act-card{padding:18px 20px;border-radius:10px;color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.act-card:nth-child(1){background:linear-gradient(135deg,#007a5e,#00a67d)}
+.act-card:nth-child(2){background:linear-gradient(135deg,#0071e3,#3395ff)}
+.act-card:nth-child(3){background:linear-gradient(135deg,#c72530,#e02e3b)}
+.act-card h4{font-size:15px;font-weight:900;margin-bottom:8px;letter-spacing:-.01em}
+.act-card p{color:rgba(255,255,255,.85);line-height:1.6;font-size:12px}
+.act-card .ah{font-size:14px;font-weight:900;margin:8px 0 0;opacity:.9}
+
+/* Segment bubbles */
+.seg-bubbles{display:flex;flex-wrap:wrap;gap:8px}
+.seg-bubble{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:800;border:2px solid var(--line);background:var(--white);transition:.15s}
+.seg-bubble:hover{transform:scale(1.04);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.seg-bubble .sb-num{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;font-size:14px;font-weight:900;color:#fff;background:var(--blue)}
+.seg-bubble:nth-child(2n) .sb-num{background:var(--green)}
+.seg-bubble:nth-child(3n) .sb-num{background:var(--purple)}
+.seg-bubble:nth-child(4n) .sb-num{background:var(--amber)}
+.seg-bubble:nth-child(5n) .sb-num{background:var(--red)}
+.seg-bubble .sb-name{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg-popup{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:100;justify-content:center;align-items:center}
+.seg-popup.show{display:flex}.seg-popup>div{background:var(--white);border-radius:12px;padding:24px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+.seg-popup h3{font-size:18px;margin-bottom:12px}.seg-popup p{font-size:14px;line-height:1.8;color:var(--ink)}
+.seg-popup button{margin-top:14px;padding:8px 20px;border:0;background:var(--red);color:#fff;border-radius:6px;cursor:pointer;font-size:14px;font-weight:700}
+/* Brand top3 expand */
+.brand-top3-row{cursor:pointer;padding:6px 8px;border-radius:6px;transition:.15s}
+.brand-top3-row:hover{background:#f5f5fa}
+.brand-top3-detail{display:none;padding:6px 12px;margin:2px 0 8px 30px;background:#f8f8fc;border-radius:6px;font-size:11px;line-height:1.6}
+.brand-top3-detail.open{display:block}
+.brand-top3-detail b{color:var(--blue)}
+/* Compact yuhong card */
+.yh-compact{padding:12px;background:#fff8f8;border:1px solid #ffd5d5;border-radius:8px}.yh-compact h4{font-size:13px;color:var(--red);margin-bottom:4px}.yh-compact p{font-size:11px;line-height:1.55;color:#555;margin:2px 0}
+/* Anomaly scroll */
+.ano-scroll{max-height:420px;overflow-y:auto;padding-right:4px}
+.ano-scroll::-webkit-scrollbar{width:4px}.ano-scroll::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px}
+/* Bigger product tags */
+.ptag-cat{font-size:12px!important;font-weight:800!important;padding:4px 9px!important}.ptag-dir{font-size:12px!important;font-weight:800!important;padding:4px 9px!important}
+
+footer{text-align:center;padding:10px;color:var(--muted);font-size:10px;border-top:1px solid var(--line);background:var(--white)}
+
+@media(max-width:1200px){.g2,.g21{grid-template-columns:1fr}.pgrid{grid-template-columns:repeat(3,1fr)}.kpi-row{grid-template-columns:repeat(3,1fr)}}
+.mobile-menu{display:none;border:0;background:var(--red);color:#fff;border-radius:7px;padding:8px 11px;font-size:14px;font-weight:800;cursor:pointer}
+@media(max-width:800px){
+  .app{grid-template-columns:1fr}.pgrid{grid-template-columns:repeat(2,1fr)}.ano-grid{grid-template-columns:1fr}
+  .mobile-menu{display:inline-flex}.sidebar{display:flex;position:fixed;inset:0 auto 0 0;width:min(82vw,300px);z-index:100;transform:translateX(-105%);transition:transform .2s;box-shadow:10px 0 30px rgba(0,0,0,.25)}
+  .sidebar.mobile-open{transform:translateX(0)}.topbar{padding:10px 12px;gap:10px;justify-content:flex-start}.topbar h1{font-size:17px}.topbar .period{display:none}.content{padding:10px}
+  .pimg{height:165px}.pgrid,.pgrid.pg5{grid-template-columns:repeat(2,1fr)}
+}
+
+/* CSS Donut Chart */
+.donut-chart{position:relative;width:220px;height:220px;margin:0 auto}
+.donut-chart svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut-chart .center-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-chart .center-text b{display:block;font-size:28px;color:var(--ink);line-height:1.1}
+.donut-chart .center-text span{display:block;font-size:14px;font-weight:700;color:var(--muted)}
+.donut-legend{display:flex;flex-wrap:wrap;gap:3px 10px;justify-content:center;margin-top:8px;font-size:11px}
+.donut-legend span{display:flex;align-items:center;gap:4px}
+.donut-legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.donut-legend b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="app">
+<aside class="sidebar" id="sidebar" aria-label="看板导航">
+  <div class="side-logo"><div class="logo">虹</div><span><strong>东方雨虹·看板</strong><small>W30 · 市场洞察</small></span></div>
+  <div class="side-label">品牌驾驶舱</div>
+  <button class="side-btn active" id="nav-overview" onclick="switchTab('overview')"><i>◉</i>经营总览</button>
+  <button class="side-btn" id="nav-brands" onclick="switchTab('brands')"><i>▣</i>品牌矩阵</button>
+  <button class="side-btn" id="nav-brandsort" onclick="switchTab('brandsort')"><i>📊</i>品牌周对比</button>
+  <button class="side-btn" id="nav-products" onclick="switchTab('products')"><i>🎯</i>Top10产品</button>
+  <button class="side-btn" id="nav-anomalies" onclick="switchTab('anomalies')"><i>⚡</i>异动信号</button>
+  <div class="side-label">品类分析</div>
+  <div class="side-cats" id="sideCats"></div>
+  <button class="side-btn" id="nav-data" onclick="switchTab('data')"><i>⊡</i>数据查询</button>
+  <div class="side-foot"><span>报告周期</span><strong>07.20 — 07.26</strong><small>天猫+淘宝 · 三周对比</small></div>
+</aside>
+
+<div class="main">
+<header class="topbar">
+  <button class="mobile-menu" id="mobileMenu" type="button" aria-controls="sidebar" aria-expanded="false">☰ 导航</button>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <h1><span>东方雨虹</span> · 天猫重点品类市场竞品看板</h1>
+    <label for="headerCatFilter" style="font-weight:800;font-size:13px">类目</label>
+    <select id="headerCatFilter" onchange="renderTopBrandTags()" style="min-width:130px"><option value="全部">全品类</option></select>
+    <div id="topBrandTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+  </div>
+  <span class="period">第30周 · 2026.07.20 — 07.26 · 第28周→第29周→第30周</span>
+</header>
+<div class="content">
+
+<!-- OVERVIEW -->
+<div class="tab-panel active" id="tab-overview">
+  <div class="kpi-row" id="yuhongKpis"><div class="kpi-card"><div class="kl">加载中...</div><div class="kv">—</div></div></div>
+  <div class="act-cards" id="actionCards"></div>
+  <div class="g21">
+    <div class="card"><h3>雨虹品牌 · 品类版图<span class="tag">各品类入榜商品趋势</span></h3><div class="chart-box h350" id="cYuhongMap"></div></div>
+    <div class="card"><h3>品牌竞争格局<span class="tag">Top10品牌Top100强度</span></h3><div id="topBrandBars"></div></div>
+  </div>
+  <div class="card"><h3>本周 Top10 产品<span class="tag">跨品类头部商品 · 点击查看主图</span></h3><div class="pgrid pg5" id="overviewProducts"></div></div>
+  <div class="card"><h3>上升信号明显的产品<span class="tag">排名改善 · 点击查看主图</span></h3><div class="pgrid pg5" id="risingProducts"></div></div>
+</div>
+
+<!-- BRANDS -->
+<div class="tab-panel" id="tab-brands">
+  <div class="cbar"><label for="brandSearch">搜索</label><input type="text" id="brandSearch" placeholder="品牌名..." oninput="renderBrands()" style="width:150px"><label for="brandJudgment">筛选</label><select id="brandJudgment" onchange="renderBrands()"><option value="全部">全部</option></select><span id="brandCount"></span></div>
+  <div class="scroll-table"><table><thead><tr><th>品牌</th><th>品类数</th><th>Top10</th><th>Top30</th><th>Top100</th><th>标签</th><th>判断</th></tr></thead><tbody id="brandBody"></tbody></table></div>
+</div>
+
+<!-- BRAND WEEK -->
+<div class="tab-panel" id="tab-brandsort"><div id="brandSortContent"></div></div>
+
+<!-- TOP10 PRODUCTS -->
+<div class="tab-panel" id="tab-products"><div id="top10ProductGrid"></div></div>
+
+<!-- ANOMALIES -->
+<div class="tab-panel" id="tab-anomalies">
+  <div class="cbar"><label for="anoCat">品类</label><select id="anoCat" onchange="renderAnomalies()"></select><label for="anoType">类型</label><select id="anoType" onchange="renderAnomalies()"><option value="全部">全部</option><option value="全部机会">⬆机会</option><option value="全部风险">⬇风险</option></select><span id="anoCount"></span></div>
+  <div id="anoContent" style="overflow-y:auto;max-height:calc(100vh - 180px)"></div>
+</div>
+
+<!-- CATEGORY -->
+<div class="tab-panel" id="tab-category">
+  <div class="cbar"><label for="catSel">品类</label><select id="catSel" onchange="renderCatDetail()"></select><span id="catInfo" style="color:var(--muted);font-size:13px"></span></div>
+  <div id="catContent"></div>
+</div>
+
+<!-- DATA -->
+<div class="tab-panel" id="tab-data">
+  <div class="cbar"><label for="dataSheet">工作表</label><select id="dataSheet" onchange="renderData()"></select><label for="dataSearch">搜索</label><input type="text" id="dataSearch" placeholder="检索..." oninput="scheduleRenderData()" style="width:160px"><span id="dataInfo"></span></div>
+  <div class="scroll-table" id="dataTable"></div>
+</div>
+
+</div></div></div>
+
+<script>
+var _charts={},_dashboardData=null,_dataPromise=null,_manifest=null,_manifestPromise=null,_sheetCache={},_sheetPromises={},_images={},_dataSearchTimer=null;
+var F={'美缝/勾缝剂':'05','防水涂料':'06','玻璃胶':'07','地漏':'08','地坪漆':'09','水性木器漆':'10','艺术漆':'11','乳胶漆':'12','瓷砖胶':'13','毛巾架':'14','角阀':'15','面盆龙头':'16','恒温花洒套装':'17','厨房龙头':'18','水槽套餐':'19'};
+var CATS=Object.keys(F);
+
+function GC(id){var el=document.getElementById(id);if(!el)return null;if(typeof echarts==='undefined')throw new Error('图表组件未加载，请确认 vendor/echarts.min.js 可访问');var c=echarts.getInstanceByDom(el);if(c)c.dispose();c=echarts.init(el,null,{renderer:'canvas'});_charts[id]=c;return c}
+window.addEventListener('resize',function(){Object.values(_charts).forEach(function(c){if(c&&!c.isDisposed())c.resize()})});
+function LJ(p){return fetch(p).then(function(r){if(!r.ok)throw new Error(p+' 加载失败（HTTP '+r.status+'）');return r.json().catch(function(){throw new Error(p+' 不是有效的 JSON 文件')})})}
+function showLoadError(e){
+  console.error('看板加载失败:',e);
+  var msg=esc(e&&e.message?e.message:'未知错误');
+  var html='<div class="card" style="margin:16px;border-left:5px solid var(--red)"><h3 style="color:var(--red)">数据加载失败</h3><p style="font-size:14px;line-height:1.8">错误：'+msg+'</p><p style="color:var(--muted);margin-top:6px">请通过本地服务器打开页面，并确认 data、product-images 和 vendor 目录与本文件位于同一级目录。</p></div>';
+  var k=document.getElementById('yuhongKpis');if(k)k.innerHTML=html;
+  var active=document.querySelector('.tab-panel.active');if(active&&active.id!=='tab-overview')active.innerHTML=html;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escA(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function lastV(t){var p=String(t).split('→');return parseInt(p[p.length-1])||0}
+function vals(t){return String(t).split('→').map(Number).filter(function(n){return!isNaN(n)})}
+function trendH(t){if(!t)return'';var n=vals(t),m=Math.max(1,Math.max.apply(null,n));return'<span class="tmini">'+n.map(function(v){return'<i style="height:'+Math.max(14,v/m*100)+'%"></i>'}).join('')+'</span>'}
+function getT(j){j=(j||'');if(j.includes('增强')||j.includes('扩大')||j.includes('扩张')||j.includes('冲榜'))return'bp';if(j.includes('预警')||j.includes('走弱')||j.includes('收缩'))return'bd';if(j.includes('回落'))return'bw';return'bn'}
+function pUrl(id){return'https://detail.tmall.com/item.htm?id='+encodeURIComponent(id)}
+function pCard(p){var img=_images[p.id]||('./product-images/'+encodeURIComponent(p.id)+'.jpg'),isT3=p.rank<=3,sC=(p.status||'').includes('爆品')||(p.status||'').includes('上升')||(p.status||'').includes('冲入')?'ps-good':(p.status||'').includes('回落')?'ps-risk':'ps-warn',isYh=p.brand==='东方雨虹',isHot=(p.status||'').includes('爆品')||(p.status||'').includes('绝对爆品'),cardClass='pcard'+(isYh?' yuhong':'')+(isHot&&!isYh?' hot':'');if(isYh&&isHot)cardClass='pcard yuhong hot';
+  return'<a href="'+pUrl(p.id)+'" target="_blank" rel="noopener noreferrer" class="'+cardClass+'"><div class="pimg"><span class="prank'+(isT3?' t3':'')+'">'+p.rank+'</span><span class="pstatus '+sC+'">'+esc(p.status)+'</span>'+(img?'<img src="'+img+'" alt="'+escA((p.brand||'')+' '+(p.name||'')+' 商品主图')+'" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">':'')+'<div class="noimg" style="display:'+(img?'none':'flex')+'"><span>📦</span>点击查看天猫主图</div></div><div class="pbody"><div class="pb"><span style="font-size:14px;font-weight:900;color:var(--ink)">'+esc(p.brand)+'</span>'+(isYh?'<span class="yhtag">雨虹</span>':'')+(isHot?'<span style="font-size:11px;background:#e8a400;color:#fff;padding:2px 5px;border-radius:4px;margin-left:4px;font-weight:700">爆品</span>':'')+'</div><div class="ptags"><span class="ptag-cat">'+esc(p.category||'')+'</span><span class="ptag-dir">'+esc(p.direction)+'</span></div><div class="pn" title="'+escA(p.name)+'">'+esc(p.name)+'</div><div class="pt">'+esc(p.track)+'</div><div class="pm"><span>人气<strong>'+esc(p.popularity)+'</strong></span><span>转化<strong>'+esc(p.conversion)+'</strong></span></div></div><div class="pfoot"><span style="color:var(--blue);font-weight:700">'+esc(p.direction)+'</span><span style="color:var(--red);font-weight:800">天猫详情→</span></div></a>'}
+
+// Sidebar
+(function(){var h='';CATS.forEach(function(c,i){h+='<button class="side-cat" onclick="document.getElementById(\'headerCatFilter\').value=\''+c+'\';switchTab(\'category\');document.getElementById(\'catSel\').value=\''+c+'\';renderCatDetail();renderTopBrandTags()"><span class="n">'+(i+1).toString().padStart(2,'0')+'</span>'+c+'</button>'});document.getElementById('sideCats').innerHTML=h})();
+(function(){var s=document.getElementById('headerCatFilter');CATS.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;s.appendChild(o)})})();
+function closeMobileNav(){var s=document.getElementById('sidebar'),b=document.getElementById('mobileMenu');if(s)s.classList.remove('mobile-open');if(b)b.setAttribute('aria-expanded','false')}
+function enhanceAccessibility(){document.querySelectorAll('button').forEach(function(b){if(!b.type)b.type='button'});document.querySelectorAll('.chart-box').forEach(function(c){c.setAttribute('role','img');var h=c.closest('.card')?.querySelector('h3');c.setAttribute('aria-label',h?h.textContent.trim():'数据图表')})}
+document.getElementById('mobileMenu').addEventListener('click',function(){var s=document.getElementById('sidebar'),open=s.classList.toggle('mobile-open');this.setAttribute('aria-expanded',String(open))});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeMobileNav();var p=document.getElementById('segPopup');if(p)p.classList.remove('show')}
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role="button"]')){e.preventDefault();e.target.click()}
+});
+
+function switchTab(t){
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});var el=document.getElementById('tab-'+t);if(el)el.classList.add('active');
+  document.querySelectorAll('.side-btn').forEach(function(b){b.classList.remove('active')});var nb=document.getElementById('nav-'+t);if(nb)nb.classList.add('active');
+  var fn={overview:renderOverview,brands:renderBrands,brandsort:renderBrandSort,products:renderTop10Products,anomalies:renderAnomalies,category:renderCatDetail,data:renderData}[t];if(fn)fn();
+  closeMobileNav();
+  setTimeout(function(){enhanceAccessibility();Object.values(_charts).forEach(function(c){if(c&&!c.isDisposed())c.resize()})},200)}
+
+// ── DATA LOADING ──
+function initData(cb){if(_dashboardData){if(cb)cb(_dashboardData);return Promise.resolve(_dashboardData)}
+  if(!_dataPromise)_dataPromise=Promise.all([LJ('./data/01.json'),LJ('./data/02.json'),LJ('./data/03.json'),Promise.all(CATS.map(function(c){return LJ('./data/'+F[c]+'.json')})),LJ('./product-images.json').catch(function(){return{}})]).then(function(r){
+    _images=r[4]||{};
+    var brands=r[0].values.slice(3).filter(function(x){return x[0]});
+    var products=r[1].values.slice(2).filter(function(x){return x[0]&&x[0]!=='品类'});
+    var anomalies=r[2].values.slice(2).filter(function(x){return x[0]&&x[0]!=='异动类型'});
+    var allCat={};
+    CATS.forEach(function(c,i){
+      var rows=r[3][i].values,summary={},catBrands=[],catProds=[],catSegs=[],catAnos={upTwo:[],downTwo:[],upJump:[],downDrop:[],newIn:[],exit:[]},sec=null,sawSegH=false,azSec=null;
+      for(var j=0;j<rows.length;j++){var row=rows[j];if(!row)continue;var a=String(row[0]||'');
+        // Section detection
+        if(a.includes('一、')){sec='s';continue}if(a.includes('二、')){sec='b';continue}if(a.includes('三、')){sec='p';continue}if(a.includes('四、')){sec='az';azSec=null;continue}if(a.includes('五、')){sec='seg';sawSegH=false;continue}
+        // Summary
+        if(sec==='s'&&row[1]){if(a==='类目格局')summary.pattern=row[1];else if(a==='品牌矩阵判断')summary.matrix=row[1];else if(a==='单品绝对实力')summary.product=row[1];else if(a==='风险提示')summary.risk=row[1];else if(a==='下周观察')summary.next=row[1]}
+        // Brands
+        if(sec==='b'&&row[1]&&a!=='品类')catBrands.push({name:row[1],top10:row[2]||'',top30:row[3]||'',top100:row[4]||'',tag:row[5]||'',judgment:row[6]||''})
+        // Products
+        if(sec==='p'&&row[2]&&a!=='本周排名')catProds.push({rank:Number(row[0])||0,brand:row[2]||'',id:row[3]||'',name:row[4]||'',track:row[5]||'',status:row[6]||'',judgment:row[7]||'',direction:row[8]||'',popularity:row[9]||'',conversion:row[10]||''})
+        // Anomaly zones (section 四)
+        if(sec==='az'){
+          if(a.includes('连续两周上升')&&!a.includes('下降')){azSec='upTwo';continue}
+          if(a.includes('单周上升超过20名')){azSec='upJump';continue}
+          if(a.includes('新进前100')){azSec='newIn';continue}
+          if(azSec&&a&&!a.includes('关键词')&&!a.includes('商品名称')&&row[1]){
+            var l={name:row[0]||'',brand:row[1]||'',id:row[2]||'',track:row[3]||'',rank:String(row[4]||''),delta:String(row[5]||''),pop:row[6]||'',conv:row[7]||'',action:row[8]||'',judgment:row[9]||''};
+            var rn=row[11]?String(row[11]||''):'',rb=row[12]?String(row[12]||''):'';
+            var ri={name:rn,brand:rb,id:row[13]||'',track:row[14]||'',rank:String(row[15]||''),delta:String(row[16]||''),pop:row[17]||'',conv:row[18]||'',action:row[19]||'',judgment:row[20]||''};
+            if(azSec==='upTwo'){if(l.brand)catAnos.upTwo.push(l);if(ri.brand)catAnos.downTwo.push(ri)}
+            else if(azSec==='upJump'){if(l.brand)catAnos.upJump.push(l);if(ri.brand)catAnos.downDrop.push(ri)}
+            else if(azSec==='newIn'){if(l.brand)catAnos.newIn.push(l);if(ri.brand)catAnos.exit.push(ri)}
+          }
+        }
+        // Segments
+        if(sec==='seg'){if(!sawSegH&&(a==='细分方向'||a.includes('细分方向'))){sawSegH=true;continue}if(sawSegH&&a&&row[1]&&row[2]&&row[3])catSegs.push({name:a,top10:row[1]||'',top30:row[2]||'',top100:row[3]||'',judgment:row[4]||''})}
+      }
+      allCat[c]={summary:summary,brands:catBrands,products:catProds,segments:catSegs,anos:catAnos};
+    });
+    _dashboardData={brands:brands,products:products,anomalies:anomalies,allCat:allCat};
+    return _dashboardData;
+  }).catch(function(e){_dataPromise=null;showLoadError(e);throw e});
+  return _dataPromise.then(function(d){if(cb)cb(d);return d}).catch(function(){return null})}
+
+// ── RENDER FUNCTIONS ──
+function renderOverview(){initData(function(D){
+  var yh={top10:0,top30:0,top100:0,cats:0},topCat='',topV=0,yhCats=[];
+  CATS.forEach(function(c){var d=D.allCat[c];if(!d)return;d.brands.filter(function(b){return b.name==='东方雨虹'}).forEach(function(b){yh.top10+=lastV(b.top10);yh.top30+=lastV(b.top30);yh.top100+=lastV(b.top100);yhCats.push({name:c,t10:vals(b.top10),t30:vals(b.top30),t100:vals(b.top100),tag:b.tag})});if(d.brands.some(function(b){return b.name==='东方雨虹'}))yh.cats++});
+  yhCats.forEach(function(x){if(x.t100[2]>topV){topV=x.t100[2];topCat=x.name}});
+  document.getElementById('yuhongKpis').innerHTML=
+    '<div class="kpi-card"><div class="kl">覆盖品类</div><div class="kv" style="color:var(--blue)">'+yh.cats+'<small style="font-size:16px;color:var(--muted)">/15</small></div><div class="ks">雨虹入榜品类数</div></div>'+
+    '<div class="kpi-card"><div class="kv" style="color:var(--red)">'+yh.top10+'</div><div class="kl">Top10 席位</div><div class="ks">头部商品占位</div></div>'+
+    '<div class="kpi-card"><div class="kv" style="color:var(--green)">'+yh.top30+'</div><div class="kl">Top30 席位</div><div class="ks">核心商品矩阵</div></div>'+
+    '<div class="kpi-card"><div class="kv" style="color:var(--purple)">'+yh.top100+'</div><div class="kl">Top100 席位</div><div class="ks">全域品牌矩阵</div></div>'+
+    '<div class="kpi-card"><div class="kv" style="color:var(--amber)">'+(topCat||'—')+'</div><div class="kl">最强品类</div><div class="ks">Top100 '+topV+'席</div></div>';
+
+  var c1=GC('cYuhongMap');
+  c1&&c1.setOption({tooltip:{trigger:'axis'},legend:{data:['Top10','Top30','Top100'],top:0,right:10,textStyle:{fontSize:13}},grid:{left:4,right:50,top:40,bottom:8,containLabel:true},xAxis:{type:'category',data:yhCats.map(function(d){return d.name}),axisLabel:{fontSize:13,fontWeight:'bold',color:'#1d1d1f',rotate:0,interval:0,width:80,overflow:'truncate'},axisTick:{alignWithLabel:true}},yAxis:{type:'value',splitLine:{lineStyle:{color:'#eee'}},axisLabel:{fontSize:11}},color:['#e02e3b','#0071e3','#894dde'],series:[
+    {name:'Top10',type:'bar',barWidth:14,barGap:'15%',data:yhCats.map(function(d){return d.t10[2]||0}),itemStyle:{borderRadius:[4,4,0,0]},label:{show:true,position:'top',fontSize:11,fontWeight:'bold',color:'#e02e3b'}},
+    {name:'Top30',type:'bar',barWidth:14,data:yhCats.map(function(d){return d.t30[2]||0}),itemStyle:{borderRadius:[4,4,0,0]},label:{show:true,position:'top',fontSize:11,fontWeight:'bold',color:'#0071e3'}},
+    {name:'Top100',type:'bar',barWidth:14,data:yhCats.map(function(d){return d.t100[2]||0}),itemStyle:{borderRadius:[4,4,0,0]},label:{show:true,position:'top',fontSize:11,fontWeight:'bold',color:'#894dde'}}
+  ]});
+
+  // Build brand-category map for drill-down
+  var brandCatMap={};D.brands.forEach(function(r){var n=r[0];if(!brandCatMap[n])brandCatMap[n]=[];brandCatMap[n].push({top100:lastV(r[4])})});
+  var bm={};D.brands.forEach(function(r){var n=r[0],v=lastV(r[4]);if(v>0)bm[n]=(bm[n]||0)+v});
+  var tb=Object.entries(bm).sort(function(a,b){return b[1]-a[1]}).slice(0,10),bMax=Math.max(1,Math.max.apply(null,tb.map(function(x){return x[1]})));
+  document.getElementById('topBrandBars').innerHTML=tb.map(function(x,i){var isYh=x[0]==='东方雨虹';return'<div class="bbar'+(isYh?' yh':'')+'" role="button" tabindex="0" style="cursor:pointer" onclick="showBrandDetail(\''+escA(x[0])+'\')" title="点击查看'+escA(x[0])+'在各品类的分布"><b>'+(i+1)+'</b><strong>'+esc(x[0])+(isYh?'<span class="yhbadge">雨虹</span>':'')+'</strong><i><em style="width:'+(x[1]/bMax*100)+'%"></em></i><em>'+x[1]+'</em></div>'}).join('');
+  // Brand drill-down container
+  if(!document.getElementById('brandDrillDown')){var dd=document.createElement('div');dd.id='brandDrillDown';dd.style.cssText='margin-top:8px;display:none';document.getElementById('topBrandBars').parentNode.appendChild(dd)}
+
+  // Overview products with category info
+  var ap=[];CATS.forEach(function(c){if(D.allCat[c]){var ps=D.allCat[c].products.slice(0,4);ps.forEach(function(p){p.category=c});ap=ap.concat(ps)}});ap.sort(function(a,b){return a.rank-b.rank});
+  document.getElementById('overviewProducts').innerHTML=ap.slice(0,10).map(function(p){return pCard(p)}).join('');
+
+  // Rising products - show as product cards with category and direction
+  var rising=D.anomalies.filter(function(r){return String(r[0]||'').includes('上升')&&Number(r[6])<=10}).sort(function(a,b){return(Number(b[8])||0)-(Number(a[8])||0)}).slice(0,10);
+  var risingCards=rising.map(function(r){return{rank:Number(r[6])||0,brand:r[2]||'',id:r[3]||'',name:r[4]||'',track:r[5]||'',status:'↑'+Math.abs(Number(r[8])||0),category:r[1]||'',direction:r[11]||'',popularity:r[9]||'',conversion:r[10]||''}});
+  document.getElementById('risingProducts').innerHTML=risingCards.length?risingCards.map(function(p){return pCard(p)}).join(''):'<div style="text-align:center;padding:40px;color:var(--muted)">暂无上升信号</div>';
+
+  document.getElementById('actionCards').innerHTML=
+    '<div class="act-card"><h4>🟢 绝对优势 · 重点防守</h4><p>美缝/勾缝剂、防水涂料等品类中雨虹品牌Top10/30/100席位稳定，持续优化爆品标题、主图与投放预算，保持头部占位优势。</p><div class="ah">美缝/勾缝剂 · 防水涂料</div></div>'+
+    '<div class="act-card"><h4>🔵 上升品牌 · 跟踪对标</h4><p>恒温花洒-汉斯格雅、水槽套餐-九牧、毛巾架-卡贝矩阵扩张明显。对标其商品结构、定价策略与内容打法，寻找可切入的细分机会。</p><div class="ah">汉斯格雅 · 九牧 · 卡贝 · 悍高</div></div>'+
+    '<div class="act-card"><h4>🔴 雨虹行动建议</h4><p>防霉方向Top100规模21→19→21扩张，未识别方向31→31→35扩张。筛选具体商品ID追踪，评估加大"防霉美缝剂""桶装彩砂"细分方向SKU铺货。</p><div class="ah">防霉 · 桶装彩砂 · 支装彩砂</div></div>';
+})}
+
+// Brand drill-down: show category distribution
+function showBrandDetail(brandName){initData(function(D){
+  var dd=document.getElementById('brandDrillDown');if(!dd)return;
+  var catData=[];CATS.forEach(function(c){var d=D.allCat[c];if(!d)return;var b=d.brands.find(function(x){return x.name===brandName});if(b)catData.push({category:c,top10:lastV(b.top10),top30:lastV(b.top30),top100:lastV(b.top100),tag:b.tag})});
+  if(!catData.length){dd.style.display='none';return}
+  var maxV=Math.max(1,Math.max.apply(null,catData.map(function(x){return x.top100})));
+  dd.style.display='block';
+  dd.innerHTML='<div class="card" style="margin-bottom:0"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0">'+esc(brandName)+'<span class="tag">各品类Top100入榜数</span></h3><button onclick="document.getElementById(\'brandDrillDown\').style.display=\'none\'" style="border:0;background:var(--bg);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--muted)">✕ 收起</button></div>'+catData.map(function(x){return'<div class="bbar" style="background:#f9f9fb"><strong style="width:110px;font-size:12px">'+esc(x.category)+'</strong><i style="flex:1"><em style="width:'+(x.top100/maxV*100)+'%;background:linear-gradient(90deg,#5ea8ff,var(--blue))"></em></i><em>'+x.top100+'</em> <span class="badge bn" style="font-size:11px">'+esc(x.tag)+'</span></div>'}).join('')+'<div style="margin-top:8px;font-size:11px;color:var(--muted)">共覆盖 '+catData.length+' 个品类 | 点击品类跳转详情</div></div>';
+  // Make rows clickable
+  dd.querySelectorAll('.bbar').forEach(function(row,i){row.style.cursor='pointer';row.title='点击查看品类详情';row.onclick=function(){switchTab('category');document.getElementById('catSel').value=catData[i].category;renderCatDetail()}});
+})}
+
+function renderBrands(){initData(function(D){
+  var q=(document.getElementById('brandSearch')?.value||'').toLowerCase(),jf=document.getElementById('brandJudgment')?.value||'全部';
+  var sel=document.getElementById('brandJudgment');if(sel&&sel.options.length<=1){var js=[...new Set(D.brands.map(function(r){return r[6]||'未知'}))];sel.innerHTML='<option value="全部">全部</option>'+js.map(function(j){return'<option>'+j+'</option>'}).join('')}
+  var f=D.brands.filter(function(r){return(r[0]||'').toLowerCase().includes(q)&&(jf==='全部'||(r[6]||'未知')===jf)});
+  document.getElementById('brandCount').textContent='共 '+f.length+' 品牌';
+  document.getElementById('brandBody').innerHTML=f.map(function(r){var t=getT(r[6]),isYh=r[0]==='东方雨虹';return'<tr'+(isYh?' style="background:#fff5f5"':'')+'><td><strong style="font-size:13px">'+esc(r[0])+'</strong>'+(isYh?'<span class="badge bd" style="margin-left:4px">雨虹</span>':'')+'</td><td>'+(r[1]||0)+'</td><td>'+trendH(r[2])+' <small>'+esc(r[2])+'</small></td><td>'+trendH(r[3])+' <small>'+esc(r[3])+'</small></td><td>'+trendH(r[4])+' <small>'+esc(r[4])+'</small></td><td><span class="badge '+t+'">'+esc(r[5])+'</span></td><td><span class="badge '+t+'">'+esc(r[6])+'</span></td></tr>'}).join('')||'<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--muted)">无匹配</td></tr>'})}
+
+function renderGallery(){initData(function(D){
+  var ap=[];CATS.forEach(function(c){if(D.allCat[c])ap=ap.concat(D.allCat[c].products)});
+  var cat=document.getElementById('galCat')?.value||'全部',q=(document.getElementById('galSearch')?.value||'').toLowerCase();
+  var sel=document.getElementById('galCat');if(sel&&sel.options.length<=1)sel.innerHTML='<option value="全部">全部品类</option>'+CATS.map(function(c){return'<option>'+c+'</option>'}).join('');
+  var f=ap;if(cat!=='全部')f=f.filter(function(p){var d=D.allCat[cat];return d&&d.products.some(function(x){return x.id===p.id})});if(q)f=f.filter(function(p){return(p.brand+p.name+p.id+p.direction).toLowerCase().includes(q)});
+  document.getElementById('galCount').textContent='共 '+f.length+' 产品';
+  var byCat={};f.forEach(function(p){var cn=CATS.find(function(c){var d=D.allCat[c];return d&&d.products.some(function(x){return x.id===p.id})})||'';if(!byCat[cn])byCat[cn]=[];byCat[cn].push(p)});
+  var h='';Object.keys(byCat).sort().forEach(function(cn){h+='<div style="font-size:16px;font-weight:900;padding:10px 0 12px;border-bottom:1px solid var(--line);margin-bottom:12px;letter-spacing:-.01em">'+esc(cn)+' <span style="color:var(--muted);font-size:12px;font-weight:500">'+(byCat[cn]||[]).length+'个</span></div><div class="pgrid" style="margin-bottom:20px">'+(byCat[cn]||[]).map(function(p){return pCard(p)}).join('')+'</div>'});
+  document.getElementById('galContent').innerHTML=h||'<div style="text-align:center;padding:60px;color:var(--muted)">无匹配</div>'})}
+
+function renderAnomalies(){initData(function(D){
+  var cat=document.getElementById('anoCat')?.value||'全部',type=document.getElementById('anoType')?.value||'全部';
+  var sel=document.getElementById('anoCat');if(sel&&sel.options.length<=1)sel.innerHTML='<option value="全部">全部品类</option>'+CATS.map(function(c){return'<option>'+c+'</option>'}).join('');
+  var UP=['连续两周上升','单周上升超过20名','新进前100'],DOWN=['连续两周下降','单周下降超过20名','跌出前100'];
+  var f=D.anomalies.filter(function(r){if(cat!=='全部'&&(r[1]||'')!==cat)return false;if(type==='全部')return true;if(type==='全部机会')return UP.includes(r[0]);if(type==='全部风险')return DOWN.includes(r[0]);return(r[12]||'')===type});
+  document.getElementById('anoCount').textContent='共 '+f.length+' 条异动';
+  // Convert anomalies to product card format
+  var cards=f.map(function(r){return{rank:Number(r[6])||0,brand:r[2]||'',id:r[3]||'',name:r[4]||'',track:r[5]||'',status:(Number(r[8])>0?'↑':'↓')+Math.abs(Number(r[8])||0),category:r[1]||'',direction:r[11]||'',popularity:r[9]||'',conversion:r[10]||'',anoType:r[0]||'',action:r[12]||''}});
+  // Group by category
+  var byCat={};cards.forEach(function(p){var cn=p.category||'其他';if(!byCat[cn])byCat[cn]=[];byCat[cn].push(p)});
+  var h='';Object.keys(byCat).sort().forEach(function(cn){h+='<div style="font-size:15px;font-weight:900;padding:8px 0 10px;border-bottom:1px solid var(--line);margin-bottom:10px;letter-spacing:-.01em">'+esc(cn)+' <span style="color:var(--muted);font-size:11px;font-weight:500">'+(byCat[cn]||[]).length+'条</span></div><div class="pgrid" style="margin-bottom:18px">'+(byCat[cn]||[]).map(function(p){return pCard(p)}).join('')+'</div>'});
+  document.getElementById('anoContent').innerHTML=h||'<div style="text-align:center;padding:60px;color:var(--muted)">无匹配异动</div>'})}
+
+// ── CATEGORY DETAIL (with anomaly zones) ──
+function renderCatDetail(){initData(function(D){
+  var sel=document.getElementById('catSel');if(sel&&sel.options.length<=1)sel.innerHTML=CATS.map(function(c){return'<option>'+c+'</option>'}).join('');
+  var cat=sel?.value||CATS[0],d=D.allCat[cat];if(!d){document.getElementById('catContent').innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">数据加载中...</div>';return}
+  var el=document.getElementById('catContent'),bVals=d.brands.map(function(b){return lastV(b.top100)}),bMax=Math.max(1,Math.max.apply(null,bVals)),t3=d.brands.slice(0,3);
+  document.getElementById('catInfo').textContent=d.brands.length+'品牌 · '+d.products.length+'单品 · '+d.segments.length+'细分方向 · '+(d.anos.upTwo.length+d.anos.downTwo.length+d.anos.upJump.length+d.anos.downDrop.length+d.anos.newIn.length+d.anos.exit.length)+'条异动';
+
+  var hasAnos=d.anos.upTwo.length+d.anos.downTwo.length+d.anos.upJump.length+d.anos.downDrop.length+d.anos.newIn.length+d.anos.exit.length>0;
+
+  // Segment bubbles
+  var segBubbles='';d.segments.slice(0,10).forEach(function(s,i){
+    var t100v=vals(s.top100),n100=t100v.length?t100v[t100v.length-1]:0;
+    segBubbles+='<span class="seg-bubble" role="button" tabindex="0" onclick="showSegPopup(\''+escA(s.name)+'\',\''+escA(s.top10)+'\',\''+escA(s.top30)+'\',\''+escA(s.top100)+'\',\''+escA(s.judgment)+'\')"><span class="sb-num">'+n100+'</span><span class="sb-name" title="'+escA(s.name)+'">'+esc(s.name)+'</span></span>';
+  });
+
+  // Brand top3 expandable rows
+  var top3Rows='';t3.forEach(function(b,i){
+    if(!b)return;var v=bVals[i],pct=bMax>0?Math.round(v/bMax*100):0,icon=['🥇','🥈','🥉'][i];
+    top3Rows+='<div class="brand-top3-row" role="button" tabindex="0" onclick="var d=this.nextElementSibling;d.classList.toggle(\'open\')"><span style="font-size:22px">'+icon+'</span> <strong style="font-size:15px;color:'+['var(--red)','var(--blue)','var(--green)'][i]+'">'+esc(b.name)+'</strong> <span style="color:var(--muted);font-size:12px">Top100: '+v+'席</span></div><div class="brand-top3-detail"><b>Top10入榜:</b> '+esc(b.top10)+'<br><b>Top30入榜:</b> '+esc(b.top30)+'<br><b>Top100入榜:</b> '+esc(b.top100)+'<br><b>趋势标签:</b> '+esc(b.tag)+' | '+esc(b.judgment)+'</div>';
+  });
+
+  // Brand matrix with pie chart and Yuhong in same row
+  var total100=d.brands.reduce(function(s,b){return s+lastV(b.top100)},0)||1;
+  var total30=d.brands.reduce(function(s,b){return s+lastV(b.top30)},0)||1;
+  var total10=d.brands.reduce(function(s,b){return s+lastV(b.top10)},0)||1;
+  var yb=d.brands.find(function(b){return b.name==='东方雨虹'});
+  var yhT100=lastV(yb?yb.top100:''),yhT30=lastV(yb?yb.top30:''),yhT10=lastV(yb?yb.top10:'');
+
+  // Find top 5 brands for pie chart data
+  var pieBrands=d.brands.slice(0,5);
+  var pie100Data=pieBrands.map(function(b){return{name:b.name,value:lastV(b.top100)}});
+  pie100Data.push({name:'其他',value:total100-pie100Data.reduce(function(s,x){return s+x.value},0)});
+  var pie30Data=pieBrands.map(function(b){return{name:b.name,value:lastV(b.top30)}});
+  pie30Data.push({name:'其他',value:total30-pie30Data.reduce(function(s,x){return s+x.value},0)});
+  var pie10Data=pieBrands.map(function(b){return{name:b.name,value:lastV(b.top10)}});
+  pie10Data.push({name:'其他',value:total10-pie10Data.reduce(function(s,x){return s+x.value},0)});
+
+  // Anomaly block helper
+  function anoBlockScroll(title,items,color){if(!items.length)return'<div class="card" style="margin-bottom:0"><h3 style="color:'+color+'">'+title+'</h3><div style="text-align:center;padding:12px;color:var(--muted);font-size:12px">暂无数据</div></div>';var more=items.length>4;return'<div class="card" style="margin-bottom:0"><h3 style="color:'+color+'">'+title+' <span class="tag">'+items.length+'条</span></h3><div class="ano-scroll pgrid">'+items.map(function(it){var d2=parseInt(it.delta)||0;var p={rank:parseInt(it.rank)||0,brand:it.brand||'',id:it.id||'',name:it.name||'',track:it.track||'',status:(d2>0?'↑':'↓')+Math.abs(d2),category:'',direction:it.action||it.judgment||'',popularity:it.pop||'',conversion:it.conv||''};return pCard(p)}).join('')+'</div>'+(more?'<div style="text-align:center;padding:6px;color:var(--muted);font-size:11px">↑ 滚动查看更多</div>':'')+'</div>'}
+
+  el.innerHTML=
+    // Part 1
+    '<div class="g2">'+
+      '<div class="card"><h3>🏆 品牌排名 TOP3 <span class="tag">点击展开详情</span></h3>'+top3Rows+'</div>'+
+      '<div class="card"><h3>📊 细分产品方向趋势 <span class="tag">气泡=Top100数量 · 点击看详情</span></h3><div class="seg-bubbles">'+segBubbles+'</div></div>'+
+    '</div>'+
+    // Part 2
+    '<div class="g21">'+
+      '<div class="card"><h3>品牌矩阵 · Top100/30/10 占比分布</h3>'+
+        '<div class="g3" style="margin-bottom:0">'+
+          '<div style="text-align:center">'+donutHTML(pie100Data,'Top100')+'</div>'+
+          '<div style="text-align:center">'+donutHTML(pie30Data,'Top30')+'</div>'+
+          '<div style="text-align:center">'+donutHTML(pie10Data,'Top10')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="yh-compact" style="display:flex;flex-direction:column;justify-content:center;gap:6px">'+
+        '<h4 style="font-size:16px">🔴 雨虹 · 风险与观察</h4>'+
+        (yb?
+          '<div style="font-size:15px;line-height:2">'+
+            '<div style="margin:4px 0"><span style="color:var(--muted)">状态:</span> <b style="font-size:16px">'+esc(yb.tag)+'</b></div>'+
+            '<div style="font-size:14px;margin:4px 0"><span style="color:var(--muted)">T10:</span> <b>'+esc(yb.top10)+'</b></div>'+
+            '<div style="font-size:14px;margin:4px 0"><span style="color:var(--muted)">T30:</span> <b>'+esc(yb.top30)+'</b></div>'+
+            '<div style="font-size:14px;margin:4px 0"><span style="color:var(--muted)">T100:</span> <b>'+esc(yb.top100)+'</b></div>'+
+            '<div style="font-size:14px;margin:8px 0;color:var(--red);line-height:1.6"><b>风险:</b> '+esc((d.summary.risk||'无').slice(0,80))+'</div>'+
+            '<div style="font-size:14px;margin:6px 0;color:var(--blue);line-height:1.6"><b>行动:</b> '+(yhT100>=10?'保持头部占位，关注竞品替代':'优化SKU铺货与投放，提升入榜商品数')+'</div>'+
+          '</div>'
+        :
+          '<p style="font-size:12px;line-height:1.6">雨虹暂未入榜<br><span style="color:var(--muted)">'+esc((d.summary.next||'').slice(0,50))+'</span></p>'
+        )+
+      '</div>'+
+    '</div>'+
+    // Top10 products
+    '<div class="card"><h3>🎯 Top10产品 · 点击查看天猫主图</h3><div class="pgrid pg5">'+d.products.map(function(p,i){var hlc=i<3?' hl-'+(i+1):'';return pCard(p).replace('class="pcard','class="pcard'+hlc)}).join('')+'</div></div>'+
+    // Anomaly zones
+    (hasAnos?'<div class="card"><h3>⚡ 异动信号 <span class="tag">按类型分组 · 滚动查看更多</span></h3>'+
+      '<div class="g2" style="margin-bottom:10px">'+anoBlockScroll('⬆ 连续两周上升',d.anos.upTwo,'var(--green)')+anoBlockScroll('⬇ 连续两周下降',d.anos.downTwo,'var(--red)')+'</div>'+
+      '<div class="g2" style="margin-bottom:10px">'+anoBlockScroll('⬆ 单周上升 &gt;20名',d.anos.upJump,'var(--green)')+anoBlockScroll('⬇ 单周下降 &gt;20名',d.anos.downDrop,'var(--red)')+'</div>'+
+      '<div class="g2">'+anoBlockScroll('🆕 新进前100',d.anos.newIn,'var(--green)')+anoBlockScroll('🚫 跌出前100',d.anos.exit,'var(--red)')+'</div></div>':'')+
+    '';
+  // Popup for segment detail
+  if(!document.getElementById('segPopup')){var pop=document.createElement('div');pop.id='segPopup';pop.className='seg-popup';pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');pop.setAttribute('aria-labelledby','segPopTitle');pop.innerHTML='<div><h3 id="segPopTitle"></h3><p id="segPopBody"></p><button type="button" onclick="document.getElementById(\'segPopup\').classList.remove(\'show\')">关闭</button></div>';document.body.appendChild(pop)}
+  // Render pie charts - use fixed IDs with cleanup
+var renderPies=function(){var pcs=[pie100Data,pie30Data,pie10Data];['cPie100_cat','cPie30_cat','cPie10_cat'].forEach(function(id,i){var el=document.getElementById(id);if(!el||!el.clientWidth)return;var old=echarts.getInstanceByDom(el);if(old)old.dispose();var c=echarts.init(el);c.setOption({tooltip:{trigger:'item',formatter:'{b}:{c}({d}%)'},series:[{type:'pie',radius:['35%','62%'],center:['50%','55%'],label:{fontSize:12,color:'#1a1a1a',formatter:'{b}\n{d}%'},data:pcs[i].filter(function(d){return d.value>0}),itemStyle:{borderColor:'#fff',borderWidth:2}}]});_charts[id]=c})};requestAnimationFrame(function(){requestAnimationFrame(renderPies)});
+})}
+
+function anoBlock(title,items,tone,isUp){
+  if(!items.length)return'<div class="ano-block"><h4 class="'+tone+'">'+title+'</h4><div style="text-align:center;padding:16px;color:var(--muted);font-size:11px">暂无数据</div></div>';
+  return'<div class="ano-block"><h4 class="'+tone+'">'+title+' ('+items.length+')</h4>'+items.slice(0,8).map(function(it,i){var d=parseInt(it.delta)||0,ds=d>0?'+'+d:String(d);return'<a href="'+pUrl(it.id||'')+'" target="_blank" rel="noopener noreferrer" class="ano-row"><b>'+(i+1)+'</b><div><span class="an">'+esc(it.brand||'')+'</span><span class="at">'+esc((it.name||'').slice(0,22))+'</span></div><span class="adelta '+(isUp?'u':'d')+'">'+ds+'</span></a>'}).join('')+'</div>'}
+
+// CSS Donut Chart generator with clickable segments
+function donutHTML(data,label){
+  var colors=['#e02e3b','#0071e3','#0f9f6e','#ef9b24','#894dde','#bbb'];
+  var total=data.reduce(function(s,d){return s+d.value},0)||1;
+  var r=65,cx=100,cy=100,sw=28,circ=Math.round(2*Math.PI*r);
+  var offset=0,svgParts=[],legendParts=[],uid='donut_'+Math.random().toString(36).slice(2,8);
+  data.filter(function(d){return d.value>0}).forEach(function(d,i){
+    var pct=d.value/total;
+    var dash=Math.round(pct*circ);
+    var c=colors[i%6];
+    var n=d.name,v=d.value,pt=Math.round(pct*100);
+    svgParts.push('<circle r="'+r+'" cx="'+cx+'" cy="'+cy+'" fill="none" stroke="'+c+'" stroke-width="'+sw+'" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-dashoffset="'+(-offset)+'" class="donut-seg" data-name="'+escA(n)+'" data-value="'+v+'" data-pct="'+pt+'" data-color="'+c+'" onclick="var t=document.getElementById(\''+uid+'\').querySelector(\'.donut-tip\');t.innerHTML=\'<b style=color:'+c+'>●</b> '+escA(n)+' <b>'+v+'席('+pt+'%)</b>\';t.style.display=\'block\';setTimeout(function(){t.style.display=\'none\'},1800);event.stopPropagation()" style="cursor:pointer"/>');
+    offset+=dash;
+    legendParts.push('<span role="button" tabindex="0" onclick="var t=document.getElementById(\''+uid+'\').querySelector(\'.donut-tip\');t.innerHTML=\'<b style=color:'+c+'>●</b> '+escA(n)+' <b>'+v+'席('+pt+'%)</b>\';t.style.display=\'block\';setTimeout(function(){t.style.display=\'none\'},1800);event.stopPropagation()" style="cursor:pointer"><i style="background:'+c+'"></i>'+esc(n)+' <b>'+v+'席('+pt+'%)</b></span>');
+  });
+  return '<div class="donut-chart" id="'+uid+'"><svg viewBox="0 0 200 200">'+svgParts.join('')+'</svg><div class="center-text" style="pointer-events:none"><b>'+total+'</b><span>'+label+'</span></div><div class="donut-tip" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.9);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;z-index:20;pointer-events:none"></div></div><div class="donut-legend">'+legendParts.join('')+'</div>';
+}
+
+function showSegPopup(name,top10,top30,top100,judgment){
+  document.getElementById('segPopTitle').textContent=name;
+  document.getElementById('segPopBody').textContent='Top10趋势：'+top10+'；Top30趋势：'+top30+'；Top100趋势：'+top100+'；分析：'+judgment;
+  document.getElementById('segPopup').classList.add('show');
+}
+
+function renderTopBrandTags(){initData(function(D){
+  var cat=document.getElementById('headerCatFilter').value,rows=[];
+  if(cat==='全部'){
+    rows=D.brands.map(function(r){return{name:r[0],value:lastV(r[4])}})
+  }else{
+    var d=D.allCat[cat];rows=(d?d.brands:[]).map(function(b){return{name:b.name,value:lastV(b.top100)}})
+  }
+  rows=rows.filter(function(x){return x.value>0}).sort(function(a,b){return b.value-a.value}).slice(0,10);
+  var wrap=document.getElementById('topBrandTags');wrap.replaceChildren();
+  var label=document.createElement('span');label.textContent='TOP10品牌';label.style.cssText='font-size:14px;color:var(--muted);font-weight:900';wrap.appendChild(label);
+  rows.forEach(function(x,i){var b=document.createElement('button'),isYh=x.name==='东方雨虹';b.type='button';b.textContent=(i+1)+'. '+x.name+(isYh?' · 虹':'');b.title=x.name+' Top100 '+x.value+'席';b.style.cssText='padding:7px 13px;border:2px solid '+(isYh?'var(--red)':'var(--line)')+';border-radius:18px;background:'+(isYh?'#fff5f5':'#fff')+';cursor:pointer;font-size:14px;font-weight:900;color:'+(isYh?'var(--red)':'var(--ink)')+';white-space:nowrap';b.onclick=function(){switchTab('brands');document.getElementById('brandSearch').value=x.name;renderBrands()};wrap.appendChild(b)})
+})}
+
+function renderTop10Products(){initData(function(D){
+  var el=document.getElementById('top10ProductGrid'),total=0,h='<div class="kpi-row"><div class="kpi-card" style="grid-column:span 5"><div class="kl">跨品类 Top10 产品</div><div class="kv" style="font-size:24px">15品类 × 每类10个</div><div class="ks">按类目分组展示完整150个头部商品，点击卡片进入天猫详情</div></div></div>';
+  CATS.forEach(function(c){var ps=(D.allCat[c]?.products||[]).slice().sort(function(a,b){return a.rank-b.rank}).slice(0,10);total+=ps.length;ps.forEach(function(p){p.category=c});h+='<div class="card"><h3>'+esc(c)+'<span class="tag">'+ps.length+'个Top10商品</span></h3><div class="pgrid pg5">'+ps.map(function(p){return pCard(p)}).join('')+'</div></div>'});
+  el.innerHTML=h.replace('15品类 × 每类10个','共 '+total+' 个头部商品');
+})}
+
+var _brandSort='top100';
+function brandSortButton(key,label){var active=_brandSort===key;return'<button type="button" onclick="_brandSort=\''+key+'\';renderBrandSort()" style="padding:6px 12px;border:1px solid '+(active?'var(--red)':'var(--line)')+';border-radius:7px;background:'+(active?'#fff5f5':'#fff')+';color:'+(active?'var(--red)':'var(--ink)')+';cursor:pointer;font-size:13px;font-weight:800">'+label+(active?' ▼':'')+'</button>'}
+function changeArrow(cur,prev){if(cur>prev)return'<span style="color:var(--green);font-size:16px;font-weight:900">↑'+(cur-prev)+'</span>';if(cur<prev)return'<span style="color:var(--red);font-size:16px;font-weight:900">↓'+(prev-cur)+'</span>';return'<span style="color:var(--muted);font-size:16px;font-weight:900">—</span>'}
+function renderBrandSort(){initData(function(D){
+  var sorted=D.brands.slice().sort(function(a,b){
+    if(_brandSort==='cats')return(Number(b[1])||0)-(Number(a[1])||0);
+    if(_brandSort==='w3t10')return lastV(b[2])-lastV(a[2]);
+    if(_brandSort==='w3t30')return lastV(b[3])-lastV(a[3]);
+    if(_brandSort==='top10')return lastV(b[2])-lastV(a[2]);
+    if(_brandSort==='top30')return lastV(b[3])-lastV(a[3]);
+    return lastV(b[4])-lastV(a[4])
+  });
+  var h='<div class="card"><h3>📊 品牌周对比<span class="tag">第28周 → 第29周 → 第30周</span></h3><div class="cbar"><label>排序</label>'+brandSortButton('top100','Top100')+brandSortButton('top30','Top30')+brandSortButton('top10','Top10')+brandSortButton('cats','品类数')+brandSortButton('w3t10','第30周T10')+brandSortButton('w3t30','第30周T30')+'<span>'+sorted.length+'个品牌</span></div><div class="scroll-table" style="max-height:calc(100vh - 230px)"><table><thead><tr><th rowspan="2">#</th><th rowspan="2">品牌</th><th rowspan="2">品类数</th><th colspan="3" style="text-align:center;background:#e8f0fe">第28周</th><th colspan="3" style="text-align:center;background:#e6f5f0">第29周</th><th colspan="3" style="text-align:center;background:#fef0e6">第30周</th><th rowspan="2">判断</th></tr><tr><th>T10</th><th>T30</th><th>T100</th><th>T10</th><th>T30</th><th>T100</th><th>T10</th><th>T30</th><th>T100</th></tr></thead><tbody>';
+  sorted.slice(0,100).forEach(function(r,i){var a=vals(r[2]),b=vals(r[3]),c=vals(r[4]),isYh=r[0]==='东方雨虹',w=function(v,n){return v[n]||0};h+='<tr'+(isYh?' style="background:#fff1f1"':'')+'><td>'+(i+1)+'</td><td><strong style="font-size:14px">'+esc(r[0])+'</strong>'+(isYh?'<span class="yhbadge">虹</span>':'')+'</td><td><b>'+esc(r[1]||0)+'</b></td><td>'+w(a,0)+'</td><td>'+w(b,0)+'</td><td>'+w(c,0)+'</td><td>'+w(a,1)+' '+changeArrow(w(a,1),w(a,0))+'</td><td>'+w(b,1)+' '+changeArrow(w(b,1),w(b,0))+'</td><td>'+w(c,1)+' '+changeArrow(w(c,1),w(c,0))+'</td><td>'+w(a,2)+' '+changeArrow(w(a,2),w(a,1))+'</td><td>'+w(b,2)+' '+changeArrow(w(b,2),w(b,1))+'</td><td>'+w(c,2)+' '+changeArrow(w(c,2),w(c,1))+'</td><td><span class="badge '+getT(r[6])+'">'+esc(r[6]||'')+'</span></td></tr>'});
+  document.getElementById('brandSortContent').innerHTML=h+'</tbody></table></div></div>';
+})}
+
+function loadManifest(){
+  if(_manifest)return Promise.resolve(_manifest);
+  if(!_manifestPromise)_manifestPromise=LJ('./data/manifest.json').then(function(m){_manifest=m;return m}).catch(function(e){_manifestPromise=null;throw e});
+  return _manifestPromise;
+}
+function loadSheet(file){
+  if(_sheetCache[file])return Promise.resolve(_sheetCache[file]);
+  if(!_sheetPromises[file])_sheetPromises[file]=LJ(file).then(function(j){_sheetCache[file]=j;delete _sheetPromises[file];return j}).catch(function(e){delete _sheetPromises[file];throw e});
+  return _sheetPromises[file];
+}
+function scheduleRenderData(){clearTimeout(_dataSearchTimer);_dataSearchTimer=setTimeout(renderData,250)}
+function renderData(){var sel=document.getElementById('dataSheet'),el=document.getElementById('dataTable');
+  if(!_manifest){loadManifest().then(function(m){sel.innerHTML=m.map(function(it,i){return'<option value="'+i+'">'+(i+1).toString().padStart(2,'0')+'. '+esc(it.sheet)+'</option>'}).join('');renderData()}).catch(showLoadError);return}
+  var idx=parseInt(sel.value)||0,item=_manifest[idx];if(!item)return;var q=(document.getElementById('dataSearch')?.value||'').toLowerCase();
+  el.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">加载中...</div>';
+  var dataFile=item.file&&item.file.charAt(0)==='/'?'.'+item.file:item.file;
+  loadSheet(dataFile).then(function(j){var rows=j.values,cols=j.cols,f=q?rows.filter(function(r){return r.some(function(c){return String(c||'').toLowerCase().includes(q)})}):rows,shown=f.slice(0,500);
+    document.getElementById('dataInfo').textContent=item.sheet+' · 共'+item.rows.toLocaleString()+'行 · 匹配'+f.length.toLocaleString()+'行 · 当前显示'+shown.length+'行';
+    el.innerHTML='<table style="width:max-content;min-width:100%"><thead><tr><th style="min-width:40px;text-align:center">#</th>'+Array.from({length:cols},function(_,i){var n=i+1,l='';while(n>0){n--;l=String.fromCharCode(65+(n%26))+l;n=Math.floor(n/26)}return'<th>'+l+'</th>'}).join('')+'</tr></thead><tbody>'+shown.map(function(r,ri){return'<tr><td style="color:var(--muted);text-align:center;font-size:11px">'+(ri+1)+'</td>'+r.map(function(c){var v=c===null||c===undefined?'':String(c);return'<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis" title="'+escA(v)+'">'+esc(v.slice(0,65))+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table>'}).catch(showLoadError)}
+
+enhanceAccessibility();
+initData(function(){renderOverview();renderTopBrandTags()});
+</script>
+</body>
 </html>
