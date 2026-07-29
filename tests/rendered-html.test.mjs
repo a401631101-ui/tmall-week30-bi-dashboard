@@ -57,6 +57,11 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.match(html, /active\.id==='tab-products'/);
   assert.match(html, /#tab-products \.pimg\{height:400px\}/);
   assert.match(html, /#tab-anomalies \.pimg\{height:400px\}/);
+  assert.match(html, /#tab-category \.pimg\{height:400px\}/);
+  assert.match(html, /isUp=status\.includes\('↑'\)/);
+  assert.match(html, /isDown=status\.includes\('↓'\)/);
+  assert.match(html, /\.ps-up\{color:var\(--red\)/);
+  assert.match(html, /\.ps-down\{color:var\(--green\)/);
   assert.doesNotMatch(html, /id="nav-gallery"/);
   assert.doesNotMatch(html, /cdn\.jsdelivr\.net/);
 
