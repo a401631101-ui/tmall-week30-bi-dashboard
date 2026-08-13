@@ -78,7 +78,7 @@ export function CategoryDashboard({ category }: { category: string }) {
   return (
     <div className="category-dashboard">
       <div className="category-head">
-        <div><span>品类经营分析</span><h2>{category}</h2><p>第28周 → 第29周 → 第30周</p></div>
+        <div><span>品类经营分析</span><h2>{category}</h2><p>第30周 → 第31周 → 第32周</p></div>
         <div className="category-score"><strong>{brands.length}</strong><span>活跃品牌</span></div>
         <div className="category-score red"><strong>{products.length}</strong><span>Top10单品</span></div>
         <div className="category-score"><strong>{segments.length}</strong><span>细分方向</span></div>

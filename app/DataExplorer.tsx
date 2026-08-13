@@ -128,7 +128,7 @@ export function DataExplorer() {
             <b />
           </div>
           <div>
-            <span>第30周平台构成</span>
+            <span>第32周平台构成</span>
             <strong>天猫 1,140 · 淘宝 360</strong>
           </div>
           <div>

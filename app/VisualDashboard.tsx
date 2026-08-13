@@ -91,7 +91,7 @@ export function VisualDashboard() {
 
       <div className="yuhong-grid">
         <article className="viz-card yuhong-category-chart">
-          <div className="viz-title"><div><span>雨虹品类版图</span><h2>7个品类入榜趋势</h2></div><em>第28周 → 第29周 → 第30周</em></div>
+          <div className="viz-title"><div><span>雨虹品类版图</span><h2>7个品类入榜趋势</h2></div><em>第30周 → 第31周 → 第32周</em></div>
           <div className="yuhong-category-rows">
             {yuhong.map((item) => (
               <div key={item.category}>
