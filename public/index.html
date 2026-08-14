@@ -226,6 +226,8 @@ footer{text-align:center;padding:10px;color:var(--muted);font-size:10px;border-t
     </select>
     <label for="headerCatFilter" style="font-weight:800;font-size:13px">类目</label>
     <select id="headerCatFilter" onchange="handleHeaderCatFilter()" style="min-width:130px"><option value="全部">全品类</option></select>
+    <label for="headerBrandFilter" style="font-weight:800;font-size:13px">品牌</label>
+    <select id="headerBrandFilter" onchange="handleHeaderBrandFilter()" style="min-width:150px"><option value="全部">全部品牌</option></select>
     <div id="topBrandTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
   </div>
   <span class="period" id="weekPeriod">第32周 · 2026.08.03 — 08.09 · 第30周→第31周→第32周</span>
@@ -299,6 +301,9 @@ function escA(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').r
 function lastV(t){var p=String(t).split('→');return parseInt(p[p.length-1])||0}
 function vals(t){return String(t).split('→').map(Number).filter(function(n){return!isNaN(n)})}
 function selectedReport(){var s=document.getElementById('weekFilter');return s?s.value:'32'}
+function selectedBrand(){var s=document.getElementById('headerBrandFilter');return s?s.value:'全部'}
+function brandMatch(name){var b=selectedBrand();return b==='全部'||String(name||'')===b}
+function populateBrandFilter(rows){var s=document.getElementById('headerBrandFilter');if(!s)return;var current=s.value||'全部',names=[...new Set(rows.map(function(r){return r[0]}).filter(Boolean))].sort(function(a,b){return String(a).localeCompare(String(b),'zh-CN')});s.innerHTML='<option value="全部">全部品牌</option>'+names.map(function(n){return'<option value="'+escA(n)+'">'+esc(n)+'</option>'}).join('');s.value=names.includes(current)?current:'全部'}
 function reportWeeks(){return selectedReport()==='30'?['第28周','第29周','第30周']:['第30周','第31周','第32周']}
 function selectedWeekIndex(){return 2}
 function weekV(t){var n=vals(t),i=selectedWeekIndex();return n[i]===undefined?lastV(t):n[i]}
@@ -317,6 +322,9 @@ function handleHeaderCatFilter(){
   renderTopBrandTags();
   var active=document.querySelector('.tab-panel.active');
   if(active&&active.id==='tab-products')renderTop10Products();
+}
+function handleHeaderBrandFilter(){
+  renderTopBrandTags();var active=document.querySelector('.tab-panel.active'),id=active?active.id.replace('tab-',''):'overview';var fn={overview:renderOverview,brands:renderBrands,brandsort:renderBrandSort,products:renderTop10Products,anomalies:renderAnomalies,category:renderCatDetail}[id];if(fn)fn();
 }
 function handleWeekFilter(){
   var report=selectedReport(),labels={'30':'第30周 · 2026.07.20 — 07.26 · 第28周→第29周→第30周','32':'第32周 · 2026.08.03 — 08.09 · 第30周→第31周→第32周'},period=document.getElementById('weekPeriod');if(period)period.textContent=labels[report];
@@ -343,7 +351,7 @@ function initData(cb){if(_dashboardData){if(cb)cb(_dashboardData);return Promise
   if(!_dataPromise){var inline=window.__BI_INLINE_DATA__,source=inline?Promise.resolve([inline['01'],inline['02'],inline['03'],CATS.map(function(c){return inline[F[c]]}),inline.images||{}]):Promise.all([LJ('./data/01.json'),LJ('./data/02.json'),LJ('./data/03.json'),Promise.all(CATS.map(function(c){return LJ('./data/'+F[c]+'.json')})),LJ('./product-images.json').catch(function(){return{}})]);
   _dataPromise=source.then(function(r){
     _images=r[4]||{};
-    var brands=r[0].values.slice(3).filter(function(x){return x[0]});
+    var brands=r[0].values.slice(3).filter(function(x){return x[0]});populateBrandFilter(brands);
     var products=r[1].values.slice(2).filter(function(x){return x[0]&&x[0]!=='品类'});
     var anomalies=r[2].values.slice(2).filter(function(x){return x[0]&&x[0]!=='异动类型'});
     var anomalyMeta={};anomalies.forEach(function(x){var id=String(x[3]||'');if(id)anomalyMeta[id]={category:x[1]||'',direction:x[11]||''}});
@@ -407,17 +415,17 @@ function renderOverview(){initData(function(D){
   // Build brand-category map for drill-down
   var brandCatMap={};D.brands.forEach(function(r){var n=r[0];if(!brandCatMap[n])brandCatMap[n]=[];brandCatMap[n].push({top100:lastV(r[4])})});
   var bm={};D.brands.forEach(function(r){var n=r[0],v=weekV(r[4]);if(v>0)bm[n]=(bm[n]||0)+v});
-  var tb=Object.entries(bm).sort(function(a,b){return b[1]-a[1]}).slice(0,10),bMax=Math.max(1,Math.max.apply(null,tb.map(function(x){return x[1]})));
+  var tb=Object.entries(bm).filter(function(x){return brandMatch(x[0])}).sort(function(a,b){return b[1]-a[1]}).slice(0,10),bMax=Math.max(1,Math.max.apply(null,tb.map(function(x){return x[1]})));
   document.getElementById('topBrandBars').innerHTML=tb.map(function(x,i){var isYh=isYuhongBrand(x[0]);return'<div class="bbar'+(isYh?' yh':'')+'" role="button" tabindex="0" style="cursor:pointer" onclick="showBrandDetail(\''+escA(x[0])+'\')" title="点击查看'+escA(x[0])+'在各品类的分布"><b>'+(i+1)+'</b><strong>'+esc(x[0])+(isYh?'<span class="yhbadge">雨虹</span>':'')+'</strong><i><em style="width:'+(x[1]/bMax*100)+'%"></em></i><em>'+x[1]+'</em></div>'}).join('');
   // Brand drill-down container
   if(!document.getElementById('brandDrillDown')){var dd=document.createElement('div');dd.id='brandDrillDown';dd.style.cssText='margin-top:8px;display:none';document.getElementById('topBrandBars').parentNode.appendChild(dd)}
 
   // Overview products with category info
-  var ap=[];CATS.forEach(function(c){if(D.allCat[c]){var ps=D.allCat[c].products.map(function(p){return Object.assign({},p,{category:c,rank:weekRank(p.track,p.rank)})}).sort(function(a,b){return a.rank-b.rank}).slice(0,4);ap=ap.concat(ps)}});ap.sort(function(a,b){return a.rank-b.rank});
+  var ap=[];CATS.forEach(function(c){if(D.allCat[c]){var ps=D.allCat[c].products.filter(function(p){return brandMatch(p.brand)}).map(function(p){return Object.assign({},p,{category:c,rank:weekRank(p.track,p.rank)})}).sort(function(a,b){return a.rank-b.rank}).slice(0,4);ap=ap.concat(ps)}});ap.sort(function(a,b){return a.rank-b.rank});
   document.getElementById('overviewProducts').innerHTML=ap.slice(0,10).map(function(p){return pCard(p)}).join('');
 
   // Rising products - show as product cards with category and direction
-  var rising=D.anomalies.filter(function(r){return String(r[0]||'').includes('上升')&&Number(r[6])<=10}).sort(function(a,b){return(Number(b[8])||0)-(Number(a[8])||0)}).slice(0,10);
+  var rising=D.anomalies.filter(function(r){return brandMatch(r[2])&&String(r[0]||'').includes('上升')&&Number(r[6])<=10}).sort(function(a,b){return(Number(b[8])||0)-(Number(a[8])||0)}).slice(0,10);
   var risingCards=rising.map(function(r){return{rank:Number(r[6])||0,brand:r[2]||'',id:r[3]||'',name:r[4]||'',track:r[5]||'',status:'↑'+Math.abs(Number(r[8])||0),category:r[1]||'',direction:r[11]||'',popularity:r[9]||'',conversion:r[10]||''}});
   document.getElementById('risingProducts').innerHTML=risingCards.length?risingCards.map(function(p){return pCard(p)}).join(''):'<div style="text-align:center;padding:40px;color:var(--muted)">暂无上升信号</div>';
 
@@ -442,7 +450,7 @@ function showBrandDetail(brandName){initData(function(D){
 function renderBrands(){initData(function(D){
   var q=(document.getElementById('brandSearch')?.value||'').toLowerCase(),jf=document.getElementById('brandJudgment')?.value||'全部';
   var sel=document.getElementById('brandJudgment');if(sel&&sel.options.length<=1){var js=[...new Set(D.brands.map(function(r){return r[6]||'未知'}))];sel.innerHTML='<option value="全部">全部</option>'+js.map(function(j){return'<option>'+j+'</option>'}).join('')}
-  var f=D.brands.filter(function(r){return(r[0]||'').toLowerCase().includes(q)&&(jf==='全部'||(r[6]||'未知')===jf)});
+  var f=D.brands.filter(function(r){return brandMatch(r[0])&&(r[0]||'').toLowerCase().includes(q)&&(jf==='全部'||(r[6]||'未知')===jf)});
   document.getElementById('brandCount').textContent='共 '+f.length+' 品牌';
   document.getElementById('brandBody').innerHTML=f.map(function(r){var t=getT(r[6]),isYh=isYuhongBrand(r[0]);return'<tr'+(isYh?' style="background:#fff5f5"':'')+'><td><strong style="font-size:13px">'+esc(r[0])+'</strong>'+(isYh?'<span class="badge bd" style="margin-left:4px">雨虹</span>':'')+'</td><td>'+(r[1]||0)+'</td><td>'+trendH(r[2])+' <small>'+esc(r[2])+'</small></td><td>'+trendH(r[3])+' <small>'+esc(r[3])+'</small></td><td>'+trendH(r[4])+' <small>'+esc(r[4])+'</small></td><td><span class="badge '+t+'">'+esc(r[5])+'</span></td><td><span class="badge '+t+'">'+esc(r[6])+'</span></td></tr>'}).join('')||'<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--muted)">无匹配</td></tr>'})}
 
@@ -460,7 +468,7 @@ function renderAnomalies(){initData(function(D){
   var cat=document.getElementById('anoCat')?.value||'全部',type=document.getElementById('anoType')?.value||'全部';
   var sel=document.getElementById('anoCat');if(sel&&sel.options.length<=1)sel.innerHTML='<option value="全部">全部品类</option>'+CATS.map(function(c){return'<option>'+c+'</option>'}).join('');
   var UP=['连续两周上升','单周上升超过20名','新进前100'],DOWN=['连续两周下降','单周下降超过20名','跌出前100'];
-  var f=D.anomalies.filter(function(r){if(cat!=='全部'&&(r[1]||'')!==cat)return false;if(type==='全部')return true;if(type==='全部机会')return UP.includes(r[0]);if(type==='全部风险')return DOWN.includes(r[0]);return(r[12]||'')===type});
+  var f=D.anomalies.filter(function(r){if(!brandMatch(r[2]))return false;if(cat!=='全部'&&(r[1]||'')!==cat)return false;if(type==='全部')return true;if(type==='全部机会')return UP.includes(r[0]);if(type==='全部风险')return DOWN.includes(r[0]);return(r[12]||'')===type});
   document.getElementById('anoCount').textContent='共 '+f.length+' 条异动';
   // Convert anomalies to product card format
   var cards=f.map(function(r){return{rank:Number(r[6])||0,brand:r[2]||'',id:r[3]||'',name:r[4]||'',track:r[5]||'',status:(Number(r[8])>0?'↑':'↓')+Math.abs(Number(r[8])||0),category:r[1]||'',direction:r[11]||'',popularity:r[9]||'',conversion:r[10]||'',anoType:r[0]||'',action:r[12]||''}});
@@ -472,7 +480,7 @@ function renderAnomalies(){initData(function(D){
 // ── CATEGORY DETAIL (with anomaly zones) ──
 function renderCatDetail(){initData(function(D){
   var sel=document.getElementById('catSel');if(sel&&sel.options.length<=1)sel.innerHTML=CATS.map(function(c){return'<option>'+c+'</option>'}).join('');
-  var cat=sel?.value||CATS[0],d=D.allCat[cat];if(!d){document.getElementById('catContent').innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">数据加载中...</div>';return}
+  var cat=sel?.value||CATS[0],d=D.allCat[cat];if(!d){document.getElementById('catContent').innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)">数据加载中...</div>';return}var filterItems=function(items){return items.filter(function(x){return brandMatch(x.brand||x.name)})};d=Object.assign({},d,{brands:filterItems(d.brands),products:filterItems(d.products),anos:{upTwo:filterItems(d.anos.upTwo),downTwo:filterItems(d.anos.downTwo),upJump:filterItems(d.anos.upJump),downDrop:filterItems(d.anos.downDrop),newIn:filterItems(d.anos.newIn),exit:filterItems(d.anos.exit)}});
   d.products.forEach(function(p){p.category=cat;p.categoryView=true});
   var el=document.getElementById('catContent'),bVals=d.brands.map(function(b){return lastV(b.top100)}),bMax=Math.max(1,Math.max.apply(null,bVals)),t3=d.brands.slice(0,3);
   document.getElementById('catInfo').textContent=d.brands.length+'品牌 · '+d.products.length+'单品 · '+d.segments.length+'细分方向 · '+(d.anos.upTwo.length+d.anos.downTwo.length+d.anos.upJump.length+d.anos.downDrop.length+d.anos.newIn.length+d.anos.exit.length)+'条异动';
@@ -590,7 +598,7 @@ function renderTopBrandTags(){initData(function(D){
   }else{
     var d=D.allCat[cat];rows=(d?d.brands:[]).map(function(b){return{name:b.name,value:weekV(b.top100)}})
   }
-  rows=rows.filter(function(x){return x.value>0}).sort(function(a,b){return b.value-a.value}).slice(0,10);
+  rows=rows.filter(function(x){return x.value>0&&brandMatch(x.name)}).sort(function(a,b){return b.value-a.value}).slice(0,10);
   var wrap=document.getElementById('topBrandTags');wrap.replaceChildren();
   var label=document.createElement('span');label.textContent='TOP10品牌';label.style.cssText='font-size:14px;color:var(--muted);font-weight:900';wrap.appendChild(label);
   rows.forEach(function(x,i){var b=document.createElement('button'),isYh=isYuhongBrand(x.name);b.type='button';b.textContent=(i+1)+'. '+x.name+(isYh?' · 虹':'');b.title=x.name+' Top100 '+x.value+'席';b.style.cssText='padding:7px 13px;border:2px solid '+(isYh?'var(--red)':'var(--line)')+';border-radius:18px;background:'+(isYh?'#fff5f5':'#fff')+';cursor:pointer;font-size:14px;font-weight:900;color:'+(isYh?'var(--red)':'var(--ink)')+';white-space:nowrap';b.onclick=function(){switchTab('brands');document.getElementById('brandSearch').value=x.name;renderBrands()};wrap.appendChild(b)})
@@ -601,7 +609,7 @@ function renderTop10Products(){initData(function(D){
   var scope=selected==='全部'?'跨品类 Top10 产品':selected+' Top10 产品';
   var note=selected==='全部'?'按15个类目分组展示头部商品，点击卡片进入天猫详情':'仅展示当前筛选类目的Top10商品，点击卡片进入天猫详情';
   var h='<div class="kpi-row"><div class="kpi-card" style="grid-column:span 5"><div class="kl">'+esc(scope)+'</div><div class="kv" style="font-size:24px">正在统计</div><div class="ks">'+esc(note)+'</div></div></div>';
-  cats.forEach(function(c){var ps=(D.allCat[c]?.products||[]).map(function(p){return Object.assign({},p,{category:c,rank:weekRank(p.track,p.rank)})}).sort(function(a,b){return a.rank-b.rank}).slice(0,10);total+=ps.length;h+='<div class="card"><h3>'+esc(c)+'<span class="tag">'+ps.length+'个Top10商品</span></h3><div class="pgrid pg5">'+ps.map(function(p){return pCard(p)}).join('')+'</div></div>'});
+  cats.forEach(function(c){var ps=(D.allCat[c]?.products||[]).filter(function(p){return brandMatch(p.brand)}).map(function(p){return Object.assign({},p,{category:c,rank:weekRank(p.track,p.rank)})}).sort(function(a,b){return a.rank-b.rank}).slice(0,10);total+=ps.length;h+='<div class="card"><h3>'+esc(c)+'<span class="tag">'+ps.length+'个Top10商品</span></h3><div class="pgrid pg5">'+ps.map(function(p){return pCard(p)}).join('')+'</div></div>'});
   el.innerHTML=h.replace('正在统计','共 '+total+' 个头部商品');
 })}
 
@@ -610,7 +618,7 @@ function brandSortButton(key,label){var active=_brandSort===key;return'<button t
 function changeValue(cur,prev){if(cur>prev)return'<span style="color:var(--red);font-size:16px;font-weight:900">'+cur+' ↑'+(cur-prev)+'</span>';if(cur<prev)return'<span style="color:var(--green);font-size:16px;font-weight:900">'+cur+' ↓'+(prev-cur)+'</span>';return'<span style="color:var(--muted);font-size:16px;font-weight:900">'+cur+' —</span>'}
 function renderBrandSort(){initData(function(D){
   var rw=reportWeeks();
-  var sorted=D.brands.slice().sort(function(a,b){
+  var sorted=D.brands.filter(function(r){return brandMatch(r[0])}).sort(function(a,b){
     if(_brandSort==='cats')return(Number(b[1])||0)-(Number(a[1])||0);
     if(_brandSort==='w3t10')return lastV(b[2])-lastV(a[2]);
     if(_brandSort==='w3t30')return lastV(b[3])-lastV(a[3]);

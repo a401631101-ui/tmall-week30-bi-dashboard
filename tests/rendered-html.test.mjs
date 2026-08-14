@@ -52,6 +52,7 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.match(html, /品牌周对比/);
   assert.match(html, /id="nav-products"/);
   assert.match(html, /id="headerCatFilter"/);
+  assert.match(html, /id="headerBrandFilter"/);
   assert.match(html, /id="weekFilter"/);
   assert.match(html, /第30周报告 · 07\.20—07\.26/);
   assert.match(html, /第32周报告 · 08\.03—08\.09/);
