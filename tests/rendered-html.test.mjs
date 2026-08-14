@@ -62,7 +62,8 @@ test("standalone dashboard ships its required local resources", async () => {
   assert.match(html, /rank:weekRank\(p\.track,p\.rank\)/);
   assert.match(html, /onchange="handleHeaderCatFilter\(\)"/);
   assert.match(html, /selected==='全部'\?CATS:\[selected\]/);
-  assert.match(html, /active\.id==='tab-products'/);
+  assert.match(html, /function refreshBrandFilter/);
+  assert.match(html, /return b\.value-a\.value/);
   assert.match(html, /#tab-products \.pimg\{height:400px\}/);
   assert.match(html, /#tab-anomalies \.pimg\{height:400px\}/);
   assert.match(html, /#tab-category \.pimg\{height:400px\}/);

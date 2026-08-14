@@ -303,7 +303,8 @@ function vals(t){return String(t).split('→').map(Number).filter(function(n){re
 function selectedReport(){var s=document.getElementById('weekFilter');return s?s.value:'32'}
 function selectedBrand(){var s=document.getElementById('headerBrandFilter');return s?s.value:'全部'}
 function brandMatch(name){var b=selectedBrand();return b==='全部'||String(name||'')===b}
-function populateBrandFilter(rows){var s=document.getElementById('headerBrandFilter');if(!s)return;var current=s.value||'全部',names=[...new Set(rows.map(function(r){return r[0]}).filter(Boolean))].sort(function(a,b){return String(a).localeCompare(String(b),'zh-CN')});s.innerHTML='<option value="全部">全部品牌</option>'+names.map(function(n){return'<option value="'+escA(n)+'">'+esc(n)+'</option>'}).join('');s.value=names.includes(current)?current:'全部'}
+function populateBrandFilter(items){var s=document.getElementById('headerBrandFilter');if(!s)return;var current=s.value||'全部',scores={};items.forEach(function(x){if(x&&x.name)scores[x.name]=Math.max(scores[x.name]||0,Number(x.value)||0)});var rows=Object.keys(scores).map(function(name){return{name:name,value:scores[name]}}).sort(function(a,b){return b.value-a.value||String(a.name).localeCompare(String(b.name),'zh-CN')});s.innerHTML='<option value="全部">全部品牌</option>'+rows.map(function(x){return'<option value="'+escA(x.name)+'">'+esc(x.name)+'</option>'}).join('');s.value=rows.some(function(x){return x.name===current})?current:'全部'}
+function refreshBrandFilter(D){var cat=document.getElementById('headerCatFilter')?.value||'全部',items=cat==='全部'?D.brands.map(function(r){return{name:r[0],value:weekV(r[4])}}):((D.allCat[cat]?.brands)||[]).map(function(b){return{name:b.name,value:weekV(b.top100)}});populateBrandFilter(items.filter(function(x){return x.value>0}))}
 function reportWeeks(){return selectedReport()==='30'?['第28周','第29周','第30周']:['第30周','第31周','第32周']}
 function selectedWeekIndex(){return 2}
 function weekV(t){var n=vals(t),i=selectedWeekIndex();return n[i]===undefined?lastV(t):n[i]}
@@ -319,9 +320,7 @@ function pCard(p){var img=_images[p.id]||('./product-images/'+encodeURIComponent
 (function(){var h='';CATS.forEach(function(c,i){h+='<button class="side-cat" onclick="document.getElementById(\'headerCatFilter\').value=\''+c+'\';switchTab(\'category\');document.getElementById(\'catSel\').value=\''+c+'\';renderCatDetail();renderTopBrandTags()"><span class="n">'+(i+1).toString().padStart(2,'0')+'</span>'+c+'</button>'});document.getElementById('sideCats').innerHTML=h})();
 (function(){var s=document.getElementById('headerCatFilter');CATS.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;s.appendChild(o)})})();
 function handleHeaderCatFilter(){
-  renderTopBrandTags();
-  var active=document.querySelector('.tab-panel.active');
-  if(active&&active.id==='tab-products')renderTop10Products();
+  initData(function(D){refreshBrandFilter(D);handleHeaderBrandFilter()});
 }
 function handleHeaderBrandFilter(){
   renderTopBrandTags();var active=document.querySelector('.tab-panel.active'),id=active?active.id.replace('tab-',''):'overview';var fn={overview:renderOverview,brands:renderBrands,brandsort:renderBrandSort,products:renderTop10Products,anomalies:renderAnomalies,category:renderCatDetail}[id];if(fn)fn();
@@ -351,7 +350,7 @@ function initData(cb){if(_dashboardData){if(cb)cb(_dashboardData);return Promise
   if(!_dataPromise){var inline=window.__BI_INLINE_DATA__,source=inline?Promise.resolve([inline['01'],inline['02'],inline['03'],CATS.map(function(c){return inline[F[c]]}),inline.images||{}]):Promise.all([LJ('./data/01.json'),LJ('./data/02.json'),LJ('./data/03.json'),Promise.all(CATS.map(function(c){return LJ('./data/'+F[c]+'.json')})),LJ('./product-images.json').catch(function(){return{}})]);
   _dataPromise=source.then(function(r){
     _images=r[4]||{};
-    var brands=r[0].values.slice(3).filter(function(x){return x[0]});populateBrandFilter(brands);
+    var brands=r[0].values.slice(3).filter(function(x){return x[0]});
     var products=r[1].values.slice(2).filter(function(x){return x[0]&&x[0]!=='品类'});
     var anomalies=r[2].values.slice(2).filter(function(x){return x[0]&&x[0]!=='异动类型'});
     var anomalyMeta={};anomalies.forEach(function(x){var id=String(x[3]||'');if(id)anomalyMeta[id]={category:x[1]||'',direction:x[11]||''}});
@@ -387,7 +386,7 @@ function initData(cb){if(_dashboardData){if(cb)cb(_dashboardData);return Promise
       }
       allCat[c]={summary:summary,brands:catBrands,products:catProds,segments:catSegs,anos:catAnos};
     });
-    _dashboardData={brands:brands,products:products,anomalies:anomalies,allCat:allCat};
+    _dashboardData={brands:brands,products:products,anomalies:anomalies,allCat:allCat};refreshBrandFilter(_dashboardData);
     return _dashboardData;
   }).catch(function(e){_dataPromise=null;showLoadError(e);throw e})}
   return _dataPromise.then(function(d){if(cb)cb(d);return d}).catch(function(){return null})}
