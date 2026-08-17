@@ -1,0 +1,595 @@
+[
+  {
+    "direction": "不锈钢",
+    "categories": [
+      "地漏",
+      "毛巾架",
+      "水槽套餐",
+      "角阀"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "冷热",
+    "categories": [
+      "厨房龙头",
+      "角阀",
+      "面盆龙头"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "防霉",
+    "categories": [
+      "乳胶漆",
+      "美缝/勾缝剂"
+    ],
+    "focus": true
+  },
+  {
+    "direction": "服务",
+    "categories": [
+      "美缝/勾缝剂",
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "洗衣机",
+    "categories": [
+      "地漏",
+      "角阀"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "环氧彩砂地坪漆",
+    "categories": [
+      "地坪漆",
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "瓷砖漆",
+    "categories": [
+      "地坪漆",
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "翻新",
+    "categories": [
+      "乳胶漆",
+      "水性木器漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "抽拉",
+    "categories": [
+      "厨房龙头",
+      "面盆龙头"
+    ],
+    "focus": true
+  },
+  {
+    "direction": "防霉多支",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "桶装彩砂",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "聚脲",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "小样",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "支装彩砂",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "聚脲多支",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "氢化",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "氢化彩砂",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "水泥基填缝剂",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "电动胶枪",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "水性彩砂",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "木地板填缝",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "美缝胶",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "手挤美缝胶",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "工具",
+    "categories": [
+      "美缝/勾缝剂"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "室外防水",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "室内防水",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "免砸砖",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "塑钢泥",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "修补水泥",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "透明外墙",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "卷材/丁基",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "背水面防水",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "灌缝胶",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "修补膏",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "自喷",
+    "categories": [
+      "防水涂料"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "玻璃胶",
+    "categories": [
+      "玻璃胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "结构胶",
+    "categories": [
+      "玻璃胶"
+    ],
+    "focus": true
+  },
+  {
+    "direction": "美容胶",
+    "categories": [
+      "玻璃胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "手挤",
+    "categories": [
+      "玻璃胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "免钉胶",
+    "categories": [
+      "玻璃胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "防臭",
+    "categories": [
+      "地漏"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "水性地坪漆",
+    "categories": [
+      "地坪漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "加固剂",
+    "categories": [
+      "地坪漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "环氧地坪漆",
+    "categories": [
+      "地坪漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "莱姆岩",
+    "categories": [
+      "地坪漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "划线漆",
+    "categories": [
+      "地坪漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "清漆",
+    "categories": [
+      "水性木器漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "玻璃磨砂漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "金漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "推光漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "铁锈漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "其他",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "仿石漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "环氧彩色地坪漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "夜光漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "荧光漆",
+    "categories": [
+      "艺术漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "抗甲醛",
+    "categories": [
+      "乳胶漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "儿童漆",
+    "categories": [
+      "乳胶漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "净味",
+    "categories": [
+      "乳胶漆"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "空鼓胶",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "瓷砖胶",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "背胶",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "空鼓剂",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "玻马王",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "玻马胶",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "干挂胶",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "新零售",
+    "categories": [
+      "瓷砖胶"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "免打孔",
+    "categories": [
+      "毛巾架"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "电热",
+    "categories": [
+      "毛巾架"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "浴巾架",
+    "categories": [
+      "毛巾架"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "全铜",
+    "categories": [
+      "角阀"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "一进二出",
+    "categories": [
+      "角阀"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "三角阀",
+    "categories": [
+      "角阀"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "入墙",
+    "categories": [
+      "面盆龙头"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "感应",
+    "categories": [
+      "面盆龙头"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "暗装",
+    "categories": [
+      "恒温花洒套装"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "恒温",
+    "categories": [
+      "恒温花洒套装"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "钢琴键",
+    "categories": [
+      "恒温花洒套装"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "增压",
+    "categories": [
+      "恒温花洒套装"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "白色",
+    "categories": [
+      "恒温花洒套装"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "净水",
+    "categories": [
+      "厨房龙头"
+    ],
+    "focus": false
+  },
+  {
+    "direction": "纳米",
+    "categories": [
+      "水槽套餐"
+    ],
+    "focus": true
+  },
+  {
+    "direction": "单槽",
+    "categories": [
+      "水槽套餐"
+    ],
+    "focus": false
+  }
+]

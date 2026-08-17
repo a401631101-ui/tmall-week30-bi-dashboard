@@ -44,13 +44,20 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    server: isCodexSeatbeltSandbox
-      ? { watch: { useFsEvents: false, usePolling: true } }
-      : undefined,
+    // 绑定 127.0.0.1 而非 "localhost"，避免 IPv6/::1 与 workerd 的 127.0.0.1 不一致。
+    server: {
+      host: "127.0.0.1",
+      ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
+    },
     plugins: [
       vinext(),
       sites(),
       cloudflare({
+        // workerd 在此环境的 startInspector 会死锁（0% CPU，卡在 mutex wait），
+        // 关闭 debugger inspector 以绕过。应用功能不受影响，仅失去 DevTools 调试。
+        inspectorPort: false,
+        // 关闭 cloudflared 预览隧道：本地开发不需要公网隧道，且本环境无外网/DNS 会致其退出。
+        tunnel: false,
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         config: localBindingConfig,
       }),

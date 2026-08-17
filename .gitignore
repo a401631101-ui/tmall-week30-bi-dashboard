@@ -40,3 +40,10 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# 旧版静态看板产物（体积巨大，禁止扫描/提交）
+/public/bi-dashboard.html
+/public/index.html
+/public/product-images/
+/public/product-images.json
+/public/product-gallery.html
