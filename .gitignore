@@ -45,3 +45,6 @@ next-env.d.ts
 /public/bi-dashboard.html
 /public/index.html
 /public/product-gallery.html
+
+# 旧版周数据文件（已被 index.json + facts/ + reports/ 取代）
+/public/data/[0-9][0-9].json
