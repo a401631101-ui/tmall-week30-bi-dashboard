@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardShell } from "./DashboardShell";
+import { CockpitApp } from "./CockpitApp";
 
 export default function Home() {
-  return <DashboardShell />;
+  return <CockpitApp />;
 }
