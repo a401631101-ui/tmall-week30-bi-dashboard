@@ -100,7 +100,7 @@ export function ProductCompetition() {
 
       <Panel title="重点异动商品图谱" subtitle="参考旧看板商品表达：大图、排名状态、指标、判断与行动建议">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {[...risers.slice(0, 4), ...droppers.slice(0, 4)].map((a) => <ProductInsightCard key={`${a.productId}-${a.type}`} compact product={{ productId: a.productId, name: a.name, brand: a.brand, category: a.category, direction: a.direction, rank: a.currentRank, track: a.track, status: `${a.type.includes("上升") ? "↑" : "↓"}${Math.abs(Number(a.delta) || 0)}`, visitors: a.visitors, conversion: a.conversion, judgment: a.judgment, action: a.action }} />)}
+          {[...risers.slice(0, 4), ...droppers.slice(0, 4)].map((a) => <ProductInsightCard key={`${a.productId}-${a.type}`} product={{ productId: a.productId, name: a.name, brand: a.brand, category: a.category, direction: a.direction, rank: a.currentRank, track: a.track, status: `${a.type.includes("上升") ? "↑" : "↓"}${Math.abs(Number(a.delta) || 0)}`, visitors: a.visitors, conversion: a.conversion, judgment: a.judgment, action: a.action }} />)}
         </div>
       </Panel>
 

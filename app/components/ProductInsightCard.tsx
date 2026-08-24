@@ -5,8 +5,6 @@ import { useAsync } from "../hooks";
 import { isYuhongBrand } from "../data/schema";
 import { Badge, Track } from "./ui";
 
-const DELISTED_PRODUCT_IDS = new Set(["1073031241072"]);
-
 export interface ProductInsight {
   productId: string;
   name: string;
@@ -23,21 +21,23 @@ export interface ProductInsight {
   priority?: string;
 }
 
-export function ProductInsightCard({ product, compact = false }: { product: ProductInsight; compact?: boolean }) {
+export function ProductInsightCard({ product }: { product: ProductInsight; compact?: boolean }) {
   const { data: images } = useAsync(loadProductImages);
   const mine = isYuhongBrand(product.brand);
   const rank = product.rank ?? product.track?.at(-1) ?? null;
   const top3 = rank != null && rank <= 3;
   const link = `https://detail.tmall.com/item.htm?id=${encodeURIComponent(product.productId)}`;
-  const delisted = DELISTED_PRODUCT_IDS.has(product.productId) && !images?.[product.productId];
+  const hasImage = Boolean(images?.[product.productId]);
+  // 店小秘采集箱中没有对应主图的商品，统一按已下架处理。
+  const delisted = Boolean(images) && !hasImage;
   return (
     <article className={`overflow-hidden rounded-xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${mine ? "border-2 border-rose-500 bg-rose-50/30" : top3 ? "border-2 border-amber-400" : "border-slate-200"}`}>
-      <a href={link} target="_blank" rel="noreferrer" className={`relative flex items-center justify-center bg-white p-2 ${compact ? "h-44" : "h-72"}`}>
-        {images?.[product.productId] ? <>
+      <a href={link} target="_blank" rel="noreferrer" className="relative flex h-72 items-center justify-center bg-white p-3">
+        {hasImage ? <>
           {/* 商品图索引包含外部动态域名，保留原生 img 以兼容离线 JSON 数据源。 */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={images[product.productId]} alt={product.name} className="h-full w-full object-contain" />
-        </> : <div className={`flex h-[90%] w-[90%] flex-col items-center justify-center rounded-xl border-2 border-dashed text-xs font-semibold ${delisted ? "border-slate-300 bg-slate-100 text-slate-600" : "border-rose-200 bg-rose-50 text-rose-500"}`}><span className="text-3xl">{delisted ? "×" : "▧"}</span>{delisted ? "产品已下架" : "暂无商品主图"}</div>}
+          <img src={images![product.productId]} alt={product.name} className="h-full w-full object-contain" />
+        </> : <div className={`flex h-full w-full flex-col items-center justify-center rounded-xl border-2 border-dashed text-sm font-bold ${delisted ? "border-slate-300 bg-slate-100 text-slate-600" : "border-rose-200 bg-rose-50 text-rose-500"}`}><span className="mb-2 text-4xl">{delisted ? "×" : "▧"}</span>{delisted ? "产品已下架" : "图片加载中"}</div>}
         {rank != null && <span className={`absolute left-2 top-2 grid h-9 w-9 place-items-center rounded-lg rounded-tr-2xl text-sm font-black text-white shadow ${top3 ? "bg-amber-500" : "bg-rose-600"}`}>{rank}</span>}
         {(delisted || product.status) && <span className={`absolute right-2 top-2 rounded-full border-2 px-3 py-1.5 text-sm font-black shadow-sm ${delisted ? "border-slate-400 bg-slate-100 text-slate-700" : product.status?.includes("下降") || product.status?.includes("跌出") || product.status?.startsWith("↓") ? "border-green-300 bg-green-50 text-green-700" : "border-rose-300 bg-rose-50 text-rose-700"}`}>{delisted ? "产品已下架" : product.status}</span>}
       </a>

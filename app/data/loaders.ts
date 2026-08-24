@@ -16,7 +16,8 @@ import type {
   YuhongTier,
 } from "./schema";
 
-const BASE = "/data";
+const PAGE_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const BASE = `${PAGE_BASE}/public/data`;
 
 // ── 缓存 ─────────────────────────────────────────────────────────────────────
 const cache = new Map<string, Promise<unknown>>();
@@ -89,11 +90,15 @@ export function loadTimeseriesSegments(): Promise<SegmentTimeseries[]> {
 }
 
 export function loadProductImages(): Promise<Record<string, string>> {
-  const key = "/product-images.json";
+  const key = `${PAGE_BASE}/public/product-images.json`;
   if (!cache.has(key)) {
-    cache.set(key, fetch(key).then((res) => {
+    cache.set(key, fetch(key).then(async (res) => {
       if (!res.ok) throw new Error(`加载失败 ${key}: HTTP ${res.status}`);
-      return res.json();
+      const images = await res.json() as Record<string, string>;
+      return Object.fromEntries(Object.entries(images).map(([id, path]) => [
+        id,
+        path.replace(/^\.\/product-images\//, `${PAGE_BASE}/public/product-images/`),
+      ]));
     }));
   }
   return cache.get(key) as Promise<Record<string, string>>;
